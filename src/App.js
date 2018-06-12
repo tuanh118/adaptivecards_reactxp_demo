@@ -1,462 +1,588 @@
-import React, { Component } from 'react';
-// import AdaptiveCardView, { CustomButtonStyles, CustomTextStyles, CustomViewStyles, Types as ACT } from 'reactxp-adaptivecards';
+import * as React from "react";
+import { fromJS } from "immutable";
+import * as ST from "stjs";
 import AdaptiveCardView from 'reactxp-adaptivecards';
 
-import logo from './logo.svg';
-import './App.css';
+class App extends React.Component {
+  constructor(props) {
+    super(props);
 
-class App extends Component {
-  state = {
-    componentDictionary: [
-      {
-        url: "https://adaptivecards.io/components/address",
-        template: `{
-          "url": "https://adaptivecards.io/components/address",
-          "layout": {
-            "default": [
+    this.state = {
+      azureData: fromJS([
+        {
+          title: 'Basic',
+          content: `{
+            "title": "Publish Adaptive Card schema",
+            "subtitle": "Now that we have defined the main rules and features of the format, we need to produce a schema and publish it to GitHub. The schema will be the starting point of our reference documentation.",
+            "image": "https://pbs.twimg.com/profile_images/3647943215/d7f12830b3c17a5a9e4afcc370e3a37e_400x400.jpeg"
+          }`
+        },
+        {
+          title: 'Not so basic',
+          content: `{
+            "a_title": "Sea Otter",
+            "a_subtitle": "What a wonderful creature!",
+            "a_image": "https://upload.wikimedia.org/wikipedia/commons/0/02/Sea_Otter_%28Enhydra_lutris%29_%2825169790524%29_crop.jpg",
+            "a_category": "Animal",
+            "a_attribution": "http://thepixelweb.com/wp-content/uploads/2012/08/Microsoft-new-logo.png"
+          }`
+        }
+      ]),
+      selectedAzureDataIndex: 0,
+      transformTemplates: fromJS([
+        {
+          title: 'Identity',
+          fn: x => x
+        },
+        {
+          title: 'Reduction',
+          fn: ({ title, subtitle, image }) => ({ title, subtitle, image })
+        },
+        {
+          title: 'Not so basic',
+          fn: ({
+            a_title,
+            a_subtitle,
+            a_image,
+            a_category,
+            a_attribution
+          }) => ({
+            title: a_title,
+            subtitle: a_subtitle,
+            image: a_image,
+            category: a_category,
+            attribution: a_attribution
+          })
+        }
+      ]),
+      selectedTransformTemplateIndex: 0,
+      hosts: fromJS([
+        {
+          title: 'Timeline',
+          layout: `{
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "type": "AdaptiveCard",
+            "version": "1.0",
+            "body": [
               {
-                "type": "TextBlock",
-                "text": "{{telephone}} · {{address.streetAddress}} \\n{{address.addressLocality}}, {{address.addressRegion}} {{address.postalCode}}",
-                "wrap": true,
-                "maxLines": 2,
-                "spacing": "none",
-                "isSubtle": true
-              }
-            ],
-            "compact": [
-              {
-                "type": "TextBlock",
-                "text": "{{telephone}} · {{address.addressLocality}}, {{address.addressRegion}}",
-                "wrap": true,
-                "maxLines": 2,
-                "spacing": "none",
-                "isSubtle": true
-              }
-            ],
-            "phone": [
-              {
-                "type": "TextBlock",
-                "text": "{{telephone}}",
-                "spacing": "none",
-                "isSubtle": true
-              }
-            ]
-          }
-        }`
-      },
-      {
-        url: "https://adaptivecards.io/components/restaurant",
-        template: `{
-          "url": "http://adaptivecards.io/components/restaurant",
-          "layout": {
-            "default": [
-              {
-                "type": "ColumnSet",
-                "columns": [
+                "type": "Container",
+                "items": [
                   {
-                    "type": "Column",
-                    "size": "auto",
-                    "items": [
+                    "type": "ColumnSet",
+                    "columns": [
                       {
-                        "type": "Image",
-                        "url": "{{image}}",
-                        "size": "medium"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "Column",
-                    "items": [
-                      {
-                        "type": "TextBlock",
-                        "text": "{{name}}",
-                        "weight": "bolder",
-                        "size": "medium"
-                      },
-                      {
-                        "type": "TextBlock",
-                        "text": "$fn_starize({{aggregateRating.ratingValue}}) {{aggregateRating.reviewCount}} reviews",
-                        "isSubtle": true
-                      },
-                      {
-                        "type": "TextBlock",
-                        "text": "Price range: {{priceRange}}",
-                        "spacing": "none"
-                      },
-                      {
-                        "type": "Data",
-                        "data": {
-                          "telephone": "{{telephone}}",
-                          "address": "{{address}}"
-                        },
-                        "template": "https://adaptivecards.io/components/address",
-                        "layout": "default"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "ActionSet",
-                "actions": [
-                  {
-                    "type": "Action.OpenUrl",
-                    "url": "{{og_url[0]}}",
-                    "title": "Website"
-                  },
-                  {
-                    "type": "Action.OpenUrl",
-                    "url": "https://www.bing.com/maps",
-                    "title": "Direction"
-                  }
-                ]
-              }
-            ],
-            "hero": [
-              {
-                "type": "Image",
-                "url": "{{image}}",
-                "size": "auto"
-              },
-              {
-                "type": "TextBlock",
-                "text": "{{name}}",
-                "weight": "bolder",
-                "size": "large"
-              },
-              {
-                "type": "ColumnSet",
-                "spacing": "none",
-                "columns": [
-                  {
-                    "type": "Column",
-                    "items": [
-                      {
-                        "type": "TextBlock",
-                        "text": "$fn_starize({{aggregateRating.ratingValue}}) stars, {{aggregateRating.reviewCount}} reviews",
-                        "isSubtle": true
-                      }
-                    ]
-                  },
-                  {
-                    "type": "Column",
-                    "items": [
-                      {
-                        "type": "TextBlock",
-                        "text": "Price range: {{priceRange}}",
-                        "spacing": "none"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "Data",
-                "data": {
-                  "telephone": "{{telephone}}",
-                  "address": "{{address}}"
-                },
-                "template": "https://adaptivecards.io/components/address",
-                "layout": "default"
-              }
-            ],
-            "compact": [
-              {
-                "type": "ColumnSet",
-                "columns": [
-                  {
-                    "type": "Column",
-                    "size": "auto",
-                    "width": 1,
-                    "items": [
-                      {
-                        "type": "Image",
-                        "url": "{{image}}",
-                        "size": "medium"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "Column",
-                    "width": 3,
-                    "items": [
-                      {
-                        "type": "TextBlock",
-                        "text": "{{name}}",
-                        "weight": "bolder",
-                        "size": "medium"
-                      },
-                      {
-                        "type": "ColumnSet",
-                        "spacing": "none",
-                        "columns": [
+                        "type": "Column",
+                        "items": [
                           {
-                            "type": "Column",
-                            "items": [
-                              {
-                                "type": "TextBlock",
-                                "text": "$fn_starize({{aggregateRating.ratingValue}}), {{aggregateRating.reviewCount}} reviews",
-                                "isSubtle": true
-                              }
-                            ]
+                            "type": "TextBlock",
+                            "text": "{{title}}",
+                            "size": "large",
+                            "weight": "bolder",
+                            "color": "dark"
                           }
                         ]
                       },
                       {
-                        "type": "TextBlock",
-                        "text": "Price range: {{priceRange}}",
-                        "spacing": "none"
+                        "type": "Column",
+                        "width": 30,
+                        "items": [
+                          {
+                            "type": "Image",
+                            "url": "{{image}}",
+                            "size": "medium",
+                            "horizontalAlignment": "right"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": "{{subtitle}}",
+                    "size": "medium",
+                    "color": "dark"
+                  },
+                  {
+                    "type": "Image",
+                    "url": "{{attribution}}",
+                    "horizontalAlignment": "left",
+                    "size": "medium"
+                  },
+                  {
+                    "type": "ActionSet",
+                    "actions": [
+                      {
+                        "type": "Action.Submit",
+                        "title": "Submit",
+                        "data": {
+                          "imageUrl": "{{image}}"
+                        }
+                      },
+                      {
+                        "type": "Action.OpenUrl",
+                        "title": "Source",
+                        "url": "{{subtitle}}"
                       }
                     ]
                   }
                 ]
               }
-            ],
-            "new": [
+            ]
+          }`,
+          config: {
+            "choiceSetInputValueSeparator": ",",
+            "supportsInteractivity": true,
+            "fontFamily": "Segoe UI",
+            "spacing": {
+              "small": 3,
+              "default": 8,
+              "medium": 20,
+              "large": 30,
+              "extraLarge": 40,
+              "padding": 10
+            },
+            "separator": {
+              "lineThickness": 1,
+              "lineColor": "#EEEEEE"
+            },
+            "fontSizes": {
+              "small": 12,
+              "default": 14,
+              "medium": 17,
+              "large": 21,
+              "extraLarge": 26
+            },
+            "fontWeights": {
+              "lighter": 200,
+              "default": 400,
+              "bolder": 600
+            },
+            "imageSizes": {
+              "small": 40,
+              "medium": 80,
+              "large": 160
+            },
+            "containerStyles": {
+              "default": {
+                "foregroundColors": {
+                  "default": {
+                    "default": "#333333",
+                    "subtle": "#EE333333"
+                  },
+                  "dark": {
+                    "default": "#000000",
+                    "subtle": "#66000000"
+                  },
+                  "light": {
+                    "default": "#FFFFFF",
+                    "subtle": "#33000000"
+                  },
+                  "accent": {
+                    "default": "#2E89FC",
+                    "subtle": "#882E89FC"
+                  },
+                  "good": {
+                    "default": "#54a254",
+                    "subtle": "#DD54a254"
+                  },
+                  "warning": {
+                    "default": "#c3ab23",
+                    "subtle": "#DDc3ab23"
+                  },
+                  "attention": {
+                    "default": "#FF0000",
+                    "subtle": "#DDFF0000"
+                  }
+                },
+                "backgroundColor": "#FFFFFF"
+              },
+              "emphasis": {
+                "foregroundColors": {
+                  "default": {
+                    "default": "#333333",
+                    "subtle": "#EE333333"
+                  },
+                  "dark": {
+                    "default": "#000000",
+                    "subtle": "#66000000"
+                  },
+                  "light": {
+                    "default": "#FFFFFF",
+                    "subtle": "#33000000"
+                  },
+                  "accent": {
+                    "default": "#2E89FC",
+                    "subtle": "#882E89FC"
+                  },
+                  "good": {
+                    "default": "#54a254",
+                    "subtle": "#DD54a254"
+                  },
+                  "warning": {
+                    "default": "#c3ab23",
+                    "subtle": "#DDc3ab23"
+                  },
+                  "attention": {
+                    "default": "#FF0000",
+                    "subtle": "#DDFF0000"
+                  }
+                },
+                "backgroundColor": "#08000000"
+              }
+            },
+            "actions": {
+              "maxActions": 5,
+              "spacing": "Default",
+              "buttonSpacing": 10,
+              "showCard": {
+                "actionMode": "Inline",
+                "inlineTopMargin": 16,
+                "style": "emphasis"
+              },
+              "preExpandSingleShowCardAction": false,
+              "actionsOrientation": "Horizontal",
+              "actionAlignment": "Left"
+            },
+            "adaptiveCard": {
+              "allowCustomStyle": false
+            },
+            "imageSet": {
+              "imageSize": "Medium",
+              "maxImageHeight": 100
+            },
+            "factSet": {
+              "title": {
+                "size": "Default",
+                "color": "Default",
+                "isSubtle": false,
+                "weight": "Bolder",
+                "warp": true
+              },
+              "value": {
+                "size": "Default",
+                "color": "Default",
+                "isSubtle": false,
+                "weight": "Default",
+                "warp": true
+              },
+              "spacing": 10
+            }
+          }
+        },
+        {
+          title: 'Cortana',
+          layout: `{
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "type": "AdaptiveCard",
+            "version": "1.0",
+            "body": [
               {
                 "type": "Container",
-                "image": {
-                  "type": "Image",
-                  "url": "{{image}}",
-                  "size": "auto",
-                  "placement": "left"
-                },
                 "items": [
                   {
+                    "type": "Image",
+                    "url": "{{image}}",
+                    "size": "stretch"
+                  },
+                  {
                     "type": "TextBlock",
-                    "text": "{{name}}",
+                    "text": "{{category}}",
+                    "size": "small",
+                    "color": "dark"
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": "{{title}}",
+                    "size": "large",
                     "weight": "bolder",
+                    "color": "dark"
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": "{{subtitle}}",
+                    "size": "medium",
+                    "color": "dark"
+                  },
+                  {
+                    "type": "Image",
+                    "url": "{{attribution}}",
+                    "horizontalAlignment": "left",
                     "size": "medium"
-                  },
-                  {
-                    "type": "TextBlock",
-                    "text": "$fn_starize({{aggregateRating.ratingValue}}) {{aggregateRating.reviewCount}} reviews",
-                    "isSubtle": true
-                  },
-                  {
-                    "type": "TextBlock",
-                    "text": "Price range: {{priceRange}}",
-                    "spacing": "none"
-                  },
-                  {
-                    "type": "Data",
-                    "data": {
-                      "telephone": "{{telephone}}",
-                      "address": "{{address}}"
-                    },
-                    "template": "https://adaptivecards.io/components/address",
-                    "layout": "default"
-                  }
-                ],
-                "actions": [
-                  {
-                    "type": "Action.OpenUrl",
-                    "url": "{{og_url[0]}}",
-                    "title": "Website"
-                  }
-                ]
-              },
-              {
-                "type": "ActionSet",
-                "actions": [
-                  {
-                    "type": "Action.OpenUrl",
-                    "url": "https://www.bing.com/maps",
-                    "title": "Direction"
                   }
                 ]
               }
             ]
+          }`,
+          config: {
+            "choiceSetInputValueSeparator": ",",
+            "supportsInteractivity": true,
+            "fontFamily": "Segoe UI",
+            "spacing": {
+              "small": 3,
+              "default": 8,
+              "medium": 20,
+              "large": 30,
+              "extraLarge": 40,
+              "padding": 10
+            },
+            "separator": {
+              "lineThickness": 1,
+              "lineColor": "#FF999999"
+            },
+            "fontSizes": {
+              "small": 13,
+              "default": 15,
+              "medium": 18,
+              "large": 20,
+              "extraLarge": 24
+            },
+            "fontWeights": {
+              "lighter": 200,
+              "default": 400,
+              "bolder": 600
+            },
+            "imageSizes": {
+              "small": 40,
+              "medium": 68,
+              "large": 320
+            },
+            "containerStyles": {
+              "default": {
+                "foregroundColors": {
+                  "default": {
+                    "default": "#FFFFFFFF",
+                    "subtle": "#99FFFFFF"
+                  },
+                  "dark": {
+                    "default": "#FF999999",
+                    "subtle": "#99999999"
+                  },
+                  "light": {
+                    "default": "#FFFFFFFF",
+                    "subtle": "#99FFFFFF"
+                  },
+                  "accent": {
+                    "default": "#FF2E89FC",
+                    "subtle": "#CC2E89FC"
+                  },
+                  "good": {
+                    "default": "#CC00FF00",
+                    "subtle": "#9900FF00"
+                  },
+                  "warning": {
+                    "default": "#CCFF9800",
+                    "subtle": "#99FF9800"
+                  },
+                  "attention": {
+                    "default": "#CCFF0000",
+                    "subtle": "#99FF0000"
+                  }
+                },
+                "backgroundColor": "#000000"
+              },
+              "emphasis": {
+                "foregroundColors": {
+                  "default": {
+                    "default": "#FFFFFFFF",
+                    "subtle": "#99FFFFFF"
+                  },
+                  "dark": {
+                    "default": "#FF999999",
+                    "subtle": "#99999999"
+                  },
+                  "light": {
+                    "default": "#FFFFFFFF",
+                    "subtle": "#99FFFFFF"
+                  },
+                  "accent": {
+                    "default": "#FF2E89FC",
+                    "subtle": "#CC2E89FC"
+                  },
+                  "good": {
+                    "default": "#CC00FF00",
+                    "subtle": "#9900FF00"
+                  },
+                  "warning": {
+                    "default": "#CCFF9800",
+                    "subtle": "#99FF9800"
+                  },
+                  "attention": {
+                    "default": "#CCFF0000",
+                    "subtle": "#99FF0000"
+                  }
+                },
+                "backgroundColor": "#33FFFFFF"
+              }
+            },
+            "actions": {
+              "maxActions": 5,
+              "spacing": "Default",
+              "buttonSpacing": 5,
+              "showCard": {
+                "actionMode": "Inline",
+                "inlineTopMargin": 20,
+                "style": "emphasis"
+              },
+              "preExpandSingleShowCardAction": false,
+              "actionsOrientation": "Horizontal",
+              "actionAlignment": "Stretch"
+            },
+            "adaptiveCard": {
+              "allowCustomStyle": false
+            },
+            "imageSet": {
+              "imageSize": "Small",
+              "maxImageHeight": 100
+            },
+            "factSet": {
+              "title": {
+                "size": "Default",
+                "color": "Default",
+                "isSubtle": false,
+                "weight": "Bolder",
+                "warp": true
+              },
+              "value": {
+                "size": "Default",
+                "color": "Default",
+                "isSubtle": false,
+                "weight": "Default",
+                "warp": true
+              },
+              "spacing": 12
+            }
           }
-        }`
-      }
-    ],
-    fnDictionary: {
-      starize: function (starCount: number) {
-        return '★'.repeat(starCount);
-      }
-    },
-    hostConfig: {
-      "choiceSetInputValueSeparator": ",",
-      "supportsInteractivity": true,
-      "fontFamily": "Segoe UI",
-      "spacing": {
-        "small": 3,
-        "default": 8,
-        "medium": 20,
-        "large": 30,
-        "extraLarge": 40,
-        "padding": 10
-      },
-      "separator": {
-        "lineThickness": 1,
-        "lineColor": "#EEEEEE"
-      },
-      "fontSizes": {
-        "small": 12,
-        "default": 14,
-        "medium": 17,
-        "large": 21,
-        "extraLarge": 26
-      },
-      "fontWeights": {
-        "lighter": 200,
-        "default": 400,
-        "bolder": 600
-      },
-      "imageSizes": {
-        "small": 40,
-        "medium": 80,
-        "large": 160
-      },
-      "containerStyles": {
-        "default": {
-          "foregroundColors": {
-            "default": {
-              "default": "#333333",
-              "subtle": "#EE333333"
-            },
-            "dark": {
-              "default": "#000000",
-              "subtle": "#66000000"
-            },
-            "light": {
-              "default": "#FFFFFF",
-              "subtle": "#33000000"
-            },
-            "accent": {
-              "default": "#2E89FC",
-              "subtle": "#882E89FC"
-            },
-            "good": {
-              "default": "#54a254",
-              "subtle": "#DD54a254"
-            },
-            "warning": {
-              "default": "#c3ab23",
-              "subtle": "#DDc3ab23"
-            },
-            "attention": {
-              "default": "#FF0000",
-              "subtle": "#DDFF0000"
-            }
-          },
-          "backgroundColor": "#FFFFFF"
-        },
-        "emphasis": {
-          "foregroundColors": {
-            "default": {
-              "default": "#333333",
-              "subtle": "#EE333333"
-            },
-            "dark": {
-              "default": "#000000",
-              "subtle": "#66000000"
-            },
-            "light": {
-              "default": "#FFFFFF",
-              "subtle": "#33000000"
-            },
-            "accent": {
-              "default": "#2E89FC",
-              "subtle": "#882E89FC"
-            },
-            "good": {
-              "default": "#54a254",
-              "subtle": "#DD54a254"
-            },
-            "warning": {
-              "default": "#c3ab23",
-              "subtle": "#DDc3ab23"
-            },
-            "attention": {
-              "default": "#FF0000",
-              "subtle": "#DDFF0000"
-            }
-          },
-          "backgroundColor": "#08000000"
         }
-      },
-      "actions": {
-        "maxActions": 5,
-        "spacing": "Default",
-        "buttonSpacing": 10,
-        "showCard": {
-          "actionMode": "Inline",
-          "inlineTopMargin": 16,
-          "style": "emphasis"
-        },
-        "preExpandSingleShowCardAction": false,
-        "actionsOrientation": "Horizontal",
-        "actionAlignment": "Left"
-      },
-      "adaptiveCard": {
-        "allowCustomStyle": false
-      },
-      "imageSet": {
-        "imageSize": "Medium",
-        "maxImageHeight": 100
-      },
-      "factSet": {
-        "title": {
-          "size": "Default",
-          "color": "Default",
-          "isSubtle": false,
-          "weight": "Bolder",
-          "warp": true
-        },
-        "value": {
-          "size": "Default",
-          "color": "Default",
-          "isSubtle": false,
-          "weight": "Default",
-          "warp": true
-        },
-        "spacing": 10
-      }
-    }
+      ])
+    };
   }
 
+  onAzureDataChange = (index) => (event) => {
+    const { azureData } = this.state;
+    this.setState({
+      azureData: azureData.setIn([index, 'content'], event.target.value)
+    });
+  }
+
+  onAzureDataClick = (index) => () => {
+    this.setState({
+      selectedAzureDataIndex: index
+    });
+  }
+
+  onTransformTemplateClick = (index) => () => {
+    this.setState({
+      selectedTransformTemplateIndex: index
+    });
+  }
+
+  generateCards = (finalData) =>
+    this.state.hosts.map(h => ST.select(finalData)
+      .transformWith(JSON.parse(h.get('layout')))
+      .root()).toJS()
+
   render() {
-    const card = {
-      "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-      "type": "AdaptiveCard",
-      "version": "1.0",
-      "body": [
-        {
-          "type": "Data",
-          "data": "https://www.yelp.com/biz/la-isla-cuisine-redmond-2",
-          "template": "https://adaptivecards.io/components/restaurant",
-          "layout": "default"
-        }
-      ]
-    };
+    const {
+      azureData, selectedAzureDataIndex,
+      transformTemplates, selectedTransformTemplateIndex,
+      hosts
+    } = this.state;
+
+    const currentAzureData = JSON.parse(azureData.getIn([selectedAzureDataIndex, 'content']));
+    const currentTransformTemplate = transformTemplates.getIn([selectedTransformTemplateIndex, 'fn']);
+
+    const finalData = currentTransformTemplate(currentAzureData);
+
+    const finalCards = this.generateCards(finalData);
 
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to ReactXP</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-        <AdaptiveCardView
-          adaptiveCard={card}
-          hostConfigs={this.state.hostConfig}
-          componentDictionary={this.state.componentDictionary}
-          fnDictionary={this.state.fnDictionary}
-          maxWidth={300}
-        /*width={ this.state.width }
-        maxWidth={ this.props.renderOptions.cardMaxWidth }
-        maxHeight={ this.props.renderOptions.cardMaxHeight }
-        aspectRatio={ this.props.renderOptions.fixedAspectRatio }
-        customButtonStyles={ this._customButtonStyles }
-        customTextStyles={ this._customTextStyles }
-        customViewStyles={ this._customViewStyles }
-        eventEmitter={ this._eventEmitter }
-        onExecuteAction={ this._onExecuteAction }*/
-        />
+        <div className="w3-row">
+          <div className="AzureCaseStudy">
+            <div className="w3-row">
+              <div
+                className="w3-third w3-container"
+                style={{
+                  overflowY: "scroll",
+                  maxHeight: "811px"
+                }}
+              >
+                <h2>Azure Data</h2>
+                <ul>
+                  {azureData.map((d, i) => (
+                    <li
+                      key={d.get('title')}
+                    >
+                      <button onClick={this.onAzureDataClick(i)}>
+                        {d.get('title')}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <textarea
+                  value={JSON.stringify(currentAzureData, null, 2)}
+                  onChange={this.onAzureDataChange(selectedAzureDataIndex)}
+                  style={{
+                    overflowY: "scroll"
+                  }}
+                />
+              </div>
+              <div
+                className="w3-third w3-container"
+                style={{
+                  overflowY: "scroll",
+                  maxHeight: "811px"
+                }}
+              >
+                <h2>Templates</h2>
+                <ul>
+                  {transformTemplates.map((t, i) => (
+                    <li
+                      key={t.get('title')}
+                    >
+                      <button onClick={this.onTransformTemplateClick(i)}>
+                        {t.get('title')}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <textarea
+                  value={currentTransformTemplate.toString()}
+                  readOnly={true}
+                  style={{
+                    overflowY: "scroll",
+                    maxHeight: "300px"
+                  }}
+                />
+                <textarea
+                  value={JSON.stringify(finalData, null, 2)}
+                  readOnly={true}
+                  style={{
+                    overflowY: "scroll",
+                    maxHeight: "300px"
+                  }}
+                />
+              </div>
+              <div
+                className="w3-third w3-container"
+                style={{
+                  overflowY: "scroll",
+                  maxHeight: "1811px"
+                }}
+              >
+                <h2>Cards</h2>
+                {finalCards.map((card, i) => (
+                  <AdaptiveCardView
+                    adaptiveCard={card}
+                    hostConfigs={hosts.getIn([i, 'config']).toJS()}
+                    maxWidth={300}
+                    key={i}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
