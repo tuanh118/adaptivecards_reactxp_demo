@@ -4,7 +4,7 @@ import AdaptiveCardView from 'reactxp-adaptivecards';
 import { fromJS } from 'immutable';
 
 import * as HostConfigs from '../hostConfigs';
-// import { ErrorBoundary } from './FramePreview';
+import { ErrorBoundary } from './FramePreview';
 import "./Components.css";
 
 function tryParseJson(str) {
@@ -12,32 +12,6 @@ function tryParseJson(str) {
     return JSON.parse(str);
   } catch (e) {
     return undefined;
-  }
-}
-
-export class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  componentWillReceiveProps() {
-    this.setState({ hasError: false });
-  }
-
-  componentDidCatch(error, info) {
-    // Display fallback UI
-    this.setState({ hasError: true });
-    // You can also log the error to an error reporting service
-    // console.error(error, info);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      // You can render any custom fallback UI
-      return <p>Unable to render card</p>;
-    }
-    return this.props.children;
   }
 }
 

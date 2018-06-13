@@ -1,9 +1,9 @@
 import * as React from "react";
 import "./App.css";
 
-// import AdaptiveFrame from './components/AdaptiveFrame';
+import AdaptiveFrame from './components/AdaptiveFrame';
 import Components from './components/Components';
-// import ComponentUsage from './components/ComponentUsage';
+import ComponentUsage from './components/ComponentUsage';
 import AzureDevOps from './components/AzureDevOps';
 
 class App extends React.Component {
@@ -11,7 +11,7 @@ class App extends React.Component {
     super(props);
 
     this.state = {
-      scenarioId: 2
+      scenarioId: 1
     };
   }
 
@@ -21,12 +21,12 @@ class App extends React.Component {
 
   getScenarioFrame = () => {
     switch (this.state.scenarioId) {
-      /* case (1):
-        return <AdaptiveFrame />; */
+      case (1):
+        return <AdaptiveFrame />;
       case (2):
         return <Components />;
-      /* case (3):
-        return <ComponentUsage />; */
+      case (3):
+        return <ComponentUsage />;
       case (4):
         return <div>Not Implemented Yet</div>;
       case (5):
@@ -47,9 +47,9 @@ class App extends React.Component {
           />
           <h1 className="App-title">{'Adaptive Cards 2.0 '}
             <select value={this.state.scenarioId} onChange={this.selectScenarioId}>
-              {/* <option value={1}>AdaptiveFrame</option> */}
+              <option value={1}>AdaptiveFrame</option>
               <option value={2}>Components</option>
-              {/* <option value={3}>Component Usage</option> */}
+              <option value={3}>Component Usage</option>
               <option value={4}>Developer Data Binding</option>
               <option value={5}>Azure DevOps</option>
             </select>
