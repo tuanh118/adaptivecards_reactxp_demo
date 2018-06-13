@@ -3,9 +3,8 @@ import { fromJS } from "immutable";
 import * as ST from "stjs";
 import AdaptiveCardView from 'reactxp-adaptivecards';
 
-// import './App.css';
-
 /** TODO
+ *  - Create real use cases for articles, videos, and restaurants
  *  - Organize cards
  */
 
@@ -14,7 +13,7 @@ class AzureDevOps extends React.Component {
     super(props);
 
     this.state = {
-      azureData: fromJS([
+      rawData: fromJS([
         {
           title: 'Basic',
           content: `{
@@ -28,40 +27,78 @@ class AzureDevOps extends React.Component {
           content: `{
             "a_title": "Sea Otter",
             "a_subtitle": "What a wonderful creature!",
+            "a_url": "https://adaptivecards.io",
             "a_image": "https://upload.wikimedia.org/wikipedia/commons/0/02/Sea_Otter_%28Enhydra_lutris%29_%2825169790524%29_crop.jpg",
             "a_category": "Animal",
-            "a_attribution": "http://thepixelweb.com/wp-content/uploads/2012/08/Microsoft-new-logo.png"
+            "a_attribution": "http://thepixelweb.com/wp-content/uploads/2012/08/Microsoft-new-logo.png",
+            "images": [
+              {
+                "description": "Otter",
+                "url": "https://upload.wikimedia.org/wikipedia/commons/0/02/Sea_Otter_%28Enhydra_lutris%29_%2825169790524%29_crop.jpg"
+              },
+              {
+                "description": "MS",
+                "url": "http://thepixelweb.com/wp-content/uploads/2012/08/Microsoft-new-logo.png"
+              }
+            ]
           }`
         }
       ]),
-      selectedAzureDataIndex: 1,
-      transformTemplates: fromJS([
+      selectedRawDataIndex: 1,
+      templates: fromJS([
         {
           title: 'Identity',
-          fn: x => x
-        },
-        {
-          title: 'Reduction',
-          fn: ({ title, subtitle, image }) => ({ title, subtitle, image })
-        },
-        {
-          title: 'Schema.Org',
-          fn: ({
-            a_title,
-            a_subtitle,
-            a_image,
-            a_category,
-            a_attribution
-          }) => ({
-            title: a_title,
-            subtitle: a_subtitle,
-            image: a_image,
-            category: a_category,
-            attribution: a_attribution
-          })
+          content: `{
+            "header": {
+              "title": "{{a_title}}",
+              "subtitle": "{{a_subtitle}}",
+              "attribution": "{{a_attribution}}",
+              "image": "{{a_image}}"
+            },
+            "body": [
+              {
+                "type": "ColumnSet",
+                "columns": [
+                  {
+                    "type": "Column",
+                    "items": [
+                      {
+                        "type": "TextBlock",
+                        "text": "{{images[0].description}}"
+                      },
+                      {
+                        "type": "Image",
+                        "url": "{{images[0].url}}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Column",
+                    "items": [
+                      {
+                        "type": "TextBlock",
+                        "text": "{{images[1].description}}"
+                      },
+                      {
+                        "type": "Image",
+                        "url": "{{images[1].url}}"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "actions": [
+              {
+                "type": "Action.OpenUrl",
+                "title": "Source",
+                "url": "{{a_url}}"
+              }
+            ]
+          }`
         }
       ]),
-      selectedTransformTemplateIndex: 2,
+      selectedTemplateIndex: 0,
       hosts: fromJS([
         {
           title: 'Timeline',
@@ -74,60 +111,213 @@ class AzureDevOps extends React.Component {
                 "type": "Container",
                 "items": [
                   {
-                    "type": "ColumnSet",
-                    "columns": [
-                      {
-                        "type": "Column",
-                        "items": [
-                          {
-                            "type": "TextBlock",
-                            "text": "{{title}}",
-                            "size": "large",
-                            "weight": "bolder",
-                            "color": "dark"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "Column",
-                        "width": 30,
-                        "items": [
-                          {
-                            "type": "Image",
-                            "url": "{{image}}",
-                            "size": "medium",
-                            "horizontalAlignment": "right"
-                          }
-                        ]
-                      }
-                    ]
+                    "type": "TextBlock",
+                    "text": "{{header.title}}",
+                    "size": "large",
+                    "weight": "bolder",
+                    "color": "dark"
                   },
                   {
                     "type": "TextBlock",
-                    "text": "{{subtitle}}",
+                    "text": "{{header.subtitle}}",
                     "size": "medium",
                     "color": "dark"
                   },
                   {
+                    "type": "Container",
+                    "items": "{{body}}"
+                  },
+                  {
                     "type": "Image",
-                    "url": "{{attribution}}",
+                    "url": "{{header.attribution}}",
                     "horizontalAlignment": "left",
                     "size": "medium"
                   },
                   {
                     "type": "ActionSet",
-                    "actions": [
+                    "actions": "{{actions}}"
+                  }
+                ]
+              }
+            ]
+          }`,
+          config: {
+            "choiceSetInputValueSeparator": ",",
+            "supportsInteractivity": true,
+            "fontFamily": "Segoe UI",
+            "spacing": {
+              "small": 3,
+              "default": 8,
+              "medium": 20,
+              "large": 30,
+              "extraLarge": 40,
+              "padding": 10
+            },
+            "separator": {
+              "lineThickness": 1,
+              "lineColor": "#EEEEEE"
+            },
+            "fontSizes": {
+              "small": 12,
+              "default": 14,
+              "medium": 17,
+              "large": 21,
+              "extraLarge": 26
+            },
+            "fontWeights": {
+              "lighter": 200,
+              "default": 400,
+              "bolder": 600
+            },
+            "imageSizes": {
+              "small": 40,
+              "medium": 80,
+              "large": 160
+            },
+            "containerStyles": {
+              "default": {
+                "foregroundColors": {
+                  "default": {
+                    "default": "#333333",
+                    "subtle": "#EE333333"
+                  },
+                  "dark": {
+                    "default": "#000000",
+                    "subtle": "#66000000"
+                  },
+                  "light": {
+                    "default": "#FFFFFF",
+                    "subtle": "#33000000"
+                  },
+                  "accent": {
+                    "default": "#2E89FC",
+                    "subtle": "#882E89FC"
+                  },
+                  "good": {
+                    "default": "#54a254",
+                    "subtle": "#DD54a254"
+                  },
+                  "warning": {
+                    "default": "#c3ab23",
+                    "subtle": "#DDc3ab23"
+                  },
+                  "attention": {
+                    "default": "#FF0000",
+                    "subtle": "#DDFF0000"
+                  }
+                },
+                "backgroundColor": "#FFFFFF"
+              },
+              "emphasis": {
+                "foregroundColors": {
+                  "default": {
+                    "default": "#333333",
+                    "subtle": "#EE333333"
+                  },
+                  "dark": {
+                    "default": "#000000",
+                    "subtle": "#66000000"
+                  },
+                  "light": {
+                    "default": "#FFFFFF",
+                    "subtle": "#33000000"
+                  },
+                  "accent": {
+                    "default": "#2E89FC",
+                    "subtle": "#882E89FC"
+                  },
+                  "good": {
+                    "default": "#54a254",
+                    "subtle": "#DD54a254"
+                  },
+                  "warning": {
+                    "default": "#c3ab23",
+                    "subtle": "#DDc3ab23"
+                  },
+                  "attention": {
+                    "default": "#FF0000",
+                    "subtle": "#DDFF0000"
+                  }
+                },
+                "backgroundColor": "#08000000"
+              }
+            },
+            "actions": {
+              "maxActions": 5,
+              "spacing": "Default",
+              "buttonSpacing": 10,
+              "showCard": {
+                "actionMode": "Inline",
+                "inlineTopMargin": 16,
+                "style": "emphasis"
+              },
+              "preExpandSingleShowCardAction": false,
+              "actionsOrientation": "Horizontal",
+              "actionAlignment": "Left"
+            },
+            "adaptiveCard": {
+              "allowCustomStyle": false
+            },
+            "imageSet": {
+              "imageSize": "Medium",
+              "maxImageHeight": 100
+            },
+            "factSet": {
+              "title": {
+                "size": "Default",
+                "color": "Default",
+                "isSubtle": false,
+                "weight": "Bolder",
+                "warp": true
+              },
+              "value": {
+                "size": "Default",
+                "color": "Default",
+                "isSubtle": false,
+                "weight": "Default",
+                "warp": true
+              },
+              "spacing": 10
+            }
+          }
+        },
+        {
+          title: 'Small',
+          layout: `{
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "type": "AdaptiveCard",
+            "version": "1.0",
+            "body": [
+              {
+                "type": "ColumnSet",
+                "columns": [
+                  {
+                    "type": "Column",
+                    "items": [
                       {
-                        "type": "Action.Submit",
-                        "title": "Submit",
-                        "data": {
-                          "imageUrl": "{{image}}"
-                        }
+                        "type": "Image",
+                        "url": "{{header.image}}",
+                        "horizontalAlignment": "left",
+                        "size": "medium"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Column",
+                    "items": [
+                      {
+                        "type": "TextBlock",
+                        "text": "{{header.title}}",
+                        "size": "large",
+                        "weight": "bolder",
+                        "color": "dark"
                       },
                       {
-                        "type": "Action.OpenUrl",
-                        "title": "Source",
-                        "url": "{{subtitle}}"
+                        "type": "TextBlock",
+                        "text": "{{header.subtitle}}",
+                        "size": "medium",
+                        "color": "dark",
+                        "maxLines": 1
                       }
                     ]
                   }
@@ -276,44 +466,37 @@ class AzureDevOps extends React.Component {
           }
         },
         {
-          title: 'Cortana',
+          title: 'Line Item',
           layout: `{
             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
             "type": "AdaptiveCard",
             "version": "1.0",
             "body": [
               {
-                "type": "Container",
-                "items": [
+                "type": "ColumnSet",
+                "columns": [
                   {
-                    "type": "Image",
-                    "url": "{{image}}",
-                    "size": "stretch"
+                    "type": "Column",
+                    "items": [
+                      {
+                        "type": "Image",
+                        "url": "{{header.image}}",
+                        "horizontalAlignment": "left",
+                        "size": "small"
+                      }
+                    ]
                   },
                   {
-                    "type": "TextBlock",
-                    "text": "{{category}}",
-                    "size": "small",
-                    "color": "dark"
-                  },
-                  {
-                    "type": "TextBlock",
-                    "text": "{{title}}",
-                    "size": "large",
-                    "weight": "bolder",
-                    "color": "dark"
-                  },
-                  {
-                    "type": "TextBlock",
-                    "text": "{{subtitle}}",
-                    "size": "medium",
-                    "color": "dark"
-                  },
-                  {
-                    "type": "Image",
-                    "url": "{{attribution}}",
-                    "horizontalAlignment": "left",
-                    "size": "medium"
+                    "type": "Column",
+                    "items": [
+                      {
+                        "type": "TextBlock",
+                        "text": "{{header.title}}",
+                        "size": "large",
+                        "weight": "bolder",
+                        "color": "dark"
+                      }
+                    ]
                   }
                 ]
               }
@@ -333,14 +516,14 @@ class AzureDevOps extends React.Component {
             },
             "separator": {
               "lineThickness": 1,
-              "lineColor": "#FF999999"
+              "lineColor": "#EEEEEE"
             },
             "fontSizes": {
-              "small": 13,
-              "default": 15,
-              "medium": 18,
-              "large": 20,
-              "extraLarge": 24
+              "small": 12,
+              "default": 14,
+              "medium": 17,
+              "large": 21,
+              "extraLarge": 26
             },
             "fontWeights": {
               "lighter": 200,
@@ -349,95 +532,95 @@ class AzureDevOps extends React.Component {
             },
             "imageSizes": {
               "small": 40,
-              "medium": 68,
-              "large": 320
+              "medium": 80,
+              "large": 160
             },
             "containerStyles": {
               "default": {
                 "foregroundColors": {
                   "default": {
-                    "default": "#FFFFFFFF",
-                    "subtle": "#99FFFFFF"
+                    "default": "#333333",
+                    "subtle": "#EE333333"
                   },
                   "dark": {
-                    "default": "#FF999999",
-                    "subtle": "#99999999"
+                    "default": "#000000",
+                    "subtle": "#66000000"
                   },
                   "light": {
-                    "default": "#FFFFFFFF",
-                    "subtle": "#99FFFFFF"
+                    "default": "#FFFFFF",
+                    "subtle": "#33000000"
                   },
                   "accent": {
-                    "default": "#FF2E89FC",
-                    "subtle": "#CC2E89FC"
+                    "default": "#2E89FC",
+                    "subtle": "#882E89FC"
                   },
                   "good": {
-                    "default": "#CC00FF00",
-                    "subtle": "#9900FF00"
+                    "default": "#54a254",
+                    "subtle": "#DD54a254"
                   },
                   "warning": {
-                    "default": "#CCFF9800",
-                    "subtle": "#99FF9800"
+                    "default": "#c3ab23",
+                    "subtle": "#DDc3ab23"
                   },
                   "attention": {
-                    "default": "#CCFF0000",
-                    "subtle": "#99FF0000"
+                    "default": "#FF0000",
+                    "subtle": "#DDFF0000"
                   }
                 },
-                "backgroundColor": "#000000"
+                "backgroundColor": "#FFFFFF"
               },
               "emphasis": {
                 "foregroundColors": {
                   "default": {
-                    "default": "#FFFFFFFF",
-                    "subtle": "#99FFFFFF"
+                    "default": "#333333",
+                    "subtle": "#EE333333"
                   },
                   "dark": {
-                    "default": "#FF999999",
-                    "subtle": "#99999999"
+                    "default": "#000000",
+                    "subtle": "#66000000"
                   },
                   "light": {
-                    "default": "#FFFFFFFF",
-                    "subtle": "#99FFFFFF"
+                    "default": "#FFFFFF",
+                    "subtle": "#33000000"
                   },
                   "accent": {
-                    "default": "#FF2E89FC",
-                    "subtle": "#CC2E89FC"
+                    "default": "#2E89FC",
+                    "subtle": "#882E89FC"
                   },
                   "good": {
-                    "default": "#CC00FF00",
-                    "subtle": "#9900FF00"
+                    "default": "#54a254",
+                    "subtle": "#DD54a254"
                   },
                   "warning": {
-                    "default": "#CCFF9800",
-                    "subtle": "#99FF9800"
+                    "default": "#c3ab23",
+                    "subtle": "#DDc3ab23"
                   },
                   "attention": {
-                    "default": "#CCFF0000",
-                    "subtle": "#99FF0000"
+                    "default": "#FF0000",
+                    "subtle": "#DDFF0000"
                   }
                 },
-                "backgroundColor": "#33FFFFFF"
+                "backgroundColor": "#08000000"
               }
             },
             "actions": {
               "maxActions": 5,
               "spacing": "Default",
-              "buttonSpacing": 5,
+              "buttonSpacing": 10,
               "showCard": {
                 "actionMode": "Inline",
-                "inlineTopMargin": 20,
+                "inlineTopMargin": 16,
                 "style": "emphasis"
               },
               "preExpandSingleShowCardAction": false,
               "actionsOrientation": "Horizontal",
-              "actionAlignment": "Stretch"
+              "actionAlignment": "Left"
             },
             "adaptiveCard": {
               "allowCustomStyle": false
             },
             "imageSet": {
-              "imageSize": "Small",
+              "imageSize": "Medium",
               "maxImageHeight": 100
             },
             "factSet": {
@@ -455,7 +638,7 @@ class AzureDevOps extends React.Component {
                 "weight": "Default",
                 "warp": true
               },
-              "spacing": 12
+              "spacing": 10
             }
           }
         }
@@ -463,43 +646,43 @@ class AzureDevOps extends React.Component {
     };
   }
 
-  onAzureDataChange = (index) => (event) => {
-    const { azureData } = this.state;
+  onRawDataChange = (index) => (event) => {
+    const { rawData } = this.state;
     this.setState({
-      azureData: azureData.setIn([index, 'content'], event.target.value)
+      rawData: rawData.setIn([index, 'content'], event.target.value)
     });
   }
 
-  onAzureDataClick = (index) => () => {
+  onRawDataClick = (index) => () => {
     this.setState({
-      selectedAzureDataIndex: index
+      selectedRawDataIndex: index
     });
   }
 
-  onTransformTemplateClick = (index) => () => {
+  onTemplateClick = (index) => () => {
     this.setState({
-      selectedTransformTemplateIndex: index
+      selectedTemplateIndex: index
     });
   }
 
-  generateCards = (finalData) =>
-    this.state.hosts.map(h => ST.select(finalData)
+  generateCards = (payload) =>
+    this.state.hosts.map(h => ST.select(payload)
       .transformWith(JSON.parse(h.get('layout')))
       .root()).toJS()
 
   render() {
     const {
-      azureData, selectedAzureDataIndex,
-      transformTemplates, selectedTransformTemplateIndex,
+      rawData, selectedRawDataIndex,
+      templates, selectedTemplateIndex,
       hosts
     } = this.state;
 
-    const currentAzureData = JSON.parse(azureData.getIn([selectedAzureDataIndex, 'content']));
-    const currentTransformTemplate = transformTemplates.getIn([selectedTransformTemplateIndex, 'fn']);
+    const currentRawData = JSON.parse(rawData.getIn([selectedRawDataIndex, 'content']));
+    const currentTemplate = JSON.parse(templates.getIn([selectedTemplateIndex, 'content']));
 
-    const finalData = currentTransformTemplate(currentAzureData);
+    const payload = ST.select(currentRawData).transformWith(currentTemplate).root();
 
-    const finalCards = this.generateCards(finalData);
+    const finalCards = this.generateCards(payload);
 
     return (
       <div className="w3-row">
@@ -512,19 +695,19 @@ class AzureDevOps extends React.Component {
         >
           <h2>Azure Data</h2>
           <ul>
-            {azureData.map((d, i) => (
+            {rawData.map((d, i) => (
               <li
                 key={d.get('title')}
               >
-                <button onClick={this.onAzureDataClick(i)}>
+                <button onClick={this.onRawDataClick(i)}>
                   {d.get('title')}
                 </button>
               </li>
             ))}
           </ul>
           <textarea
-            value={JSON.stringify(currentAzureData, null, 2)}
-            onChange={this.onAzureDataChange(selectedAzureDataIndex)}
+            value={JSON.stringify(currentRawData, null, 2)}
+            onChange={this.onRawDataChange(selectedRawDataIndex)}
             style={{
               overflowY: "scroll"
             }}
@@ -539,18 +722,18 @@ class AzureDevOps extends React.Component {
         >
           <h2>Templates</h2>
           <ul>
-            {transformTemplates.map((t, i) => (
+            {templates.map((t, i) => (
               <li
                 key={t.get('title')}
               >
-                <button onClick={this.onTransformTemplateClick(i)}>
+                <button onClick={this.onTemplateClick(i)}>
                   {t.get('title')}
                 </button>
               </li>
             ))}
           </ul>
           <textarea
-            value={currentTransformTemplate.toString()}
+            value={JSON.stringify(currentTemplate, null, 2)}
             readOnly={true}
             style={{
               overflowY: "scroll",
@@ -558,7 +741,7 @@ class AzureDevOps extends React.Component {
             }}
           />
           <textarea
-            value={JSON.stringify(finalData, null, 2)}
+            value={JSON.stringify(payload, null, 2)}
             readOnly={true}
             style={{
               overflowY: "scroll",
@@ -580,14 +763,22 @@ class AzureDevOps extends React.Component {
                 display: "inline-block",
                 padding: 8
               }}
+              key={i}
             >
               <AdaptiveCardView
                 adaptiveCard={card}
                 hostConfigs={hosts.getIn([i, 'config']).toJS()}
                 maxWidth={250}
                 imagePrefetchingEnabled={true}
-                key={i}
               />
+              {/* <textarea
+                value={JSON.stringify(card, null, 2)}
+                readOnly={true}
+                style={{
+                  overflowY: "scroll",
+                  maxHeight: "800px"
+                }}
+              /> */}
             </div>
           ))}
         </div>
