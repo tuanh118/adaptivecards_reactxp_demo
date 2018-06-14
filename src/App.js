@@ -4,6 +4,7 @@ import "./App.css";
 import AdaptiveFrame from './components/AdaptiveFrame';
 import Components from './components/Components';
 import ComponentUsage from './components/ComponentUsage';
+import DevDataBinding from './components/DevDataBinding';
 import AzureDevOps from './components/AzureDevOps';
 
 class App extends React.Component {
@@ -11,7 +12,7 @@ class App extends React.Component {
     super(props);
 
     this.state = {
-      scenarioId: 5
+      scenarioId: 4
     };
   }
 
@@ -28,7 +29,7 @@ class App extends React.Component {
       case (3):
         return <ComponentUsage />;
       case (4):
-        return <div>Not Implemented Yet</div>;
+        return <DevDataBinding />;
       case (5):
         return <AzureDevOps />;
       default:

@@ -4,6 +4,7 @@ import * as ST from "stjs";
 import AdaptiveCardView from 'reactxp-adaptivecards';
 
 /** TODO
+ *  - fallback text for body (summaryText)
  *  - Handle empty/missing/null data
  *    - Add a parameter in STjs to enforce existentiality?
  *  - Organize cards
