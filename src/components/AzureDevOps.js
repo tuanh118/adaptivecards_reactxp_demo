@@ -4,10 +4,13 @@ import * as ST from "stjs";
 import AdaptiveCardView from 'reactxp-adaptivecards';
 
 /** TODO
+ *  - Rename Data element to HostedCard
+ *  - 2nd column should add "type": "AdaptiveCard"
+ *  - Host Config layout is just a Container
+ *  - Extensions?
  *  - fallback text for body (summaryText)
  *  - Handle empty/missing/null data
  *    - Add a parameter in STjs to enforce existentiality?
- *  - Organize cards
  */
 
 /** Data Flow: {Raw Data} -{Template}-> {Card Payload} -{Host Config}-> {Card UI Element} */
