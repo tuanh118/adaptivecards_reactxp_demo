@@ -117,12 +117,12 @@ class ComponentUsage extends React.Component {
     const payload = JSON.parse(this.state.cardPayload);
 
     return (
-      <div className="ComponentUsage">
+      <div className="Components">
         <div className="w3-row">
-          <div className="w3-half ComponentUsage-section">
+          <div className="w3-half Components-section">
             <h2>Adaptive Card Editor</h2>
             <textarea
-              value={JSON.stringify(payload, null, 2)}
+              value={JSON.stringify(payload, null, 4)}
               onChange={this.onAdaptiveCardChange}
               style={{
                 overflowY: "scroll",
@@ -130,7 +130,7 @@ class ComponentUsage extends React.Component {
               }}
             />
           </div>
-          <div className="w3-half ComponentUsage-section">
+          <div className="w3-half Components-section">
             <h2>Live Card preview</h2>
             <ErrorBoundary>
               <AdaptiveCardView
