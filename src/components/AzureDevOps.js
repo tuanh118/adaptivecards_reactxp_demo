@@ -4,11 +4,12 @@ import * as ST from "stjs";
 import AdaptiveCardView from 'reactxp-adaptivecards';
 
 /** TODO
- *  - Handle functions
  *  - Handle empty/missing/null data
+ *    - Add a parameter in STjs to enforce existentiality?
  *  - Organize cards
  */
 
+/** Data Flow: {Raw Data} -{Template}-> {Card Payload} -{Host Config}-> {Card UI Element} */
 class AzureDevOps extends React.Component {
   constructor(props) {
     super(props);
@@ -115,6 +116,7 @@ class AzureDevOps extends React.Component {
         }
       ]),
       selectedRawDataIndex: 0,
+
       templates: fromJS([
         {
           "title": "Restaurants",
@@ -130,7 +132,7 @@ class AzureDevOps extends React.Component {
                 "items": [
                   {
                     "type": "TextBlock",
-                    "text": "$fn_starize({{microdata.Restaurant[0].aggregateRating.ratingValue}}) {{microdata.Restaurant[0].aggregateRating.reviewCount}} reviews",
+                    "text": "{{microdata.Restaurant[0].aggregateRating.ratingValue}} stars, {{microdata.Restaurant[0].aggregateRating.reviewCount}} reviews",
                     "isSubtle": true
                   },
                   {
@@ -222,6 +224,7 @@ class AzureDevOps extends React.Component {
         }
       ]),
       selectedTemplateIndex: 0,
+
       hosts: fromJS([
         {
           title: 'Timeline',
@@ -234,6 +237,11 @@ class AzureDevOps extends React.Component {
                 "type": "Container",
                 "items": [
                   {
+                    "type": "Image",
+                    "url": "{{header.image}}",
+                    "size": "auto"
+                  },
+                  {
                     "type": "TextBlock",
                     "text": "{{header.title}}",
                     "size": "large",
@@ -242,7 +250,11 @@ class AzureDevOps extends React.Component {
                   },
                   {
                     "type": "TextBlock",
-                    "text": "{{header.subtitle}}",
+                    "text": [{
+                      "{{#if 'subtitle' in this.header}}": "{{header.subtitle}}"
+                    }, {
+                      "{{#else}}": null
+                    }],
                     "size": "medium",
                     "color": "dark"
                   },
@@ -252,7 +264,11 @@ class AzureDevOps extends React.Component {
                   },
                   {
                     "type": "Image",
-                    "url": "{{header.attribution}}",
+                    "url": [{
+                      "{{#if 'attribution' in this.header}}": "{{header.attribution}}"
+                    }, {
+                      "{{#else}}": null
+                    }],
                     "horizontalAlignment": "left",
                     "size": "medium"
                   },
@@ -434,7 +450,8 @@ class AzureDevOps extends React.Component {
                         "size": "large",
                         "weight": "bolder",
                         "color": "dark",
-                        "maxLines": 3
+                        "wrap": true,
+                        "maxLines": 2
                       },
                       "{{body[0]}}"
                     ]
@@ -610,7 +627,6 @@ class AzureDevOps extends React.Component {
                       {
                         "type": "TextBlock",
                         "text": "{{header.title}}",
-                        "size": "large",
                         "weight": "bolder",
                         "color": "dark"
                       }
@@ -771,18 +787,19 @@ class AzureDevOps extends React.Component {
     });
   }
 
-  onRawDataClick = (index) => () => {
+  selectRawData = (index) => () => {
     this.setState({
       selectedRawDataIndex: index
     });
   }
 
-  onTemplateClick = (index) => () => {
+  selectTemplate = (index) => () => {
     this.setState({
       selectedTemplateIndex: index
     });
   }
 
+  /* Generate cards corresponding to all hosts */
   generateCards = (payload) =>
     this.state.hosts.map(h => ST.select(payload)
       .transformWith(JSON.parse(h.get('layout')))
@@ -792,7 +809,7 @@ class AzureDevOps extends React.Component {
     const {
       rawData, selectedRawDataIndex,
       templates, selectedTemplateIndex,
-      hosts
+      hosts,
     } = this.state;
 
     const currentRawData = JSON.parse(rawData.getIn([selectedRawDataIndex, 'content']));
@@ -817,7 +834,7 @@ class AzureDevOps extends React.Component {
               <li
                 key={d.get('title')}
               >
-                <button onClick={this.onRawDataClick(i)}>
+                <button onClick={this.selectRawData(i)}>
                   {d.get('title')}
                 </button>
               </li>
@@ -844,7 +861,7 @@ class AzureDevOps extends React.Component {
               <li
                 key={t.get('title')}
               >
-                <button onClick={this.onTemplateClick(i)}>
+                <button onClick={this.selectTemplate(i)}>
                   {t.get('title')}
                 </button>
               </li>
@@ -877,16 +894,17 @@ class AzureDevOps extends React.Component {
           <h2>Cards</h2>
           {finalCards.map((card, i) => (
             <div
+              className="w3-half"
               style={{
                 display: "inline-block",
-                padding: 8
+                padding: 2
               }}
               key={i}
             >
               <AdaptiveCardView
                 adaptiveCard={card}
                 hostConfigs={hosts.getIn([i, 'config']).toJS()}
-                maxWidth={250}
+                maxWidth={300}
                 imagePrefetchingEnabled={true}
               />
               {/* <textarea
