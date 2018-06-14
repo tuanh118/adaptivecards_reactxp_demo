@@ -4,7 +4,8 @@ import * as ST from "stjs";
 import AdaptiveCardView from 'reactxp-adaptivecards';
 
 /** TODO
- *  - Create real use cases for articles, videos, and restaurants
+ *  - Handle functions
+ *  - Handle empty/missing/null data
  *  - Organize cards
  */
 
@@ -15,11 +16,80 @@ class AzureDevOps extends React.Component {
     this.state = {
       rawData: fromJS([
         {
-          title: 'Basic',
+          title: 'La Isla Cuisine',
           content: `{
-            "title": "Publish Adaptive Card schema",
-            "subtitle": "Now that we have defined the main rules and features of the format, we need to produce a schema and publish it to GitHub. The schema will be the starting point of our reference documentation.",
-            "image": "https://pbs.twimg.com/profile_images/3647943215/d7f12830b3c17a5a9e4afcc370e3a37e_400x400.jpeg"
+            "metatags": {
+              "application-name": [
+                "Yelp"
+              ]
+            },
+            "microdata": {
+              "Restaurant": [
+                {
+                  "@context": "http://schema.org/",
+                  "@type": "Restaurant",
+                  "aggregateRating": {
+                    "@context": "http://schema.org/",
+                    "@type": "AggregateRating",
+                    "ratingValue": "4.0",
+                    "reviewCount": "445"
+                  },
+                  "image": "https://s3-media2.fl.yelpcdn.com/bphoto/K8cqFzbsaHwLPjOBLZpaCQ/ls.jpg",
+                  "priceRange": "$11-30",
+                  "name": "La Isla Cuisine",
+                  "address": {
+                    "@context": "http://schema.org/",
+                    "@type": "PostalAddress",
+                    "streetAddress": "16505 Redmond WayBldg B, Ste A",
+                    "addressLocality": "Redmond",
+                    "addressRegion": "WA",
+                    "postalCode": "98052",
+                    "addressCountry": "US"
+                  },
+                  "telephone": "(425) 298-0374"
+                }
+              ]
+            }
+          }`
+        },
+        {
+          title: 'Game of Thrones Article',
+          content: `{
+            "jsonld": {
+              "NewsArticle": [
+                {
+                  "@context": "http://schema.org",
+                  "@type": "NewsArticle",
+                  "mainEntityOfPage": "https://www.vox.com/culture/2017/8/28/16205048/game-of-thrones-season-7-cersei-daenerys-jon-snow",
+                  "headline": "Game of Thrones season 7: each character&#39;s strategy, ranked by political science",
+                  "description": "There’s a clear best player — and a clear worst.",
+                  "datePublished": "2017-08-28T13:00:02-04:00",
+                  "dateModified": "2017-08-28T13:00:02-04:00",
+                  "image": [
+                    {
+                      "@type": "ImageObject",
+                      "url": "https://cdn.vox-cdn.com/thumbor/pcKdsdK9lB9NOUjkKbmljJ3yZJU=/0x0:800x450/1400x1400/filters:focal(327x91:455x219):format(jpeg)/cdn.vox-cdn.com/uploads/chorus_image/image/56397893/gotqueencersei.0.jpg",
+                      "width": 1400,
+                      "height": 1400
+                    }
+                  ],
+                  "author": {
+                    "@type": "Person",
+                    "name": "Zack Beauchamp"
+                  },
+                  "publisher": {
+                    "@type": "Organization",
+                    "logo": {
+                      "@type": "ImageObject",
+                      "url": "https://www.vox.com/v/vox/images/logos/google_amp.png",
+                      "width": 600,
+                      "height": 60
+                    },
+                    "name": "Vox"
+                  }
+                }
+              ]
+            }
           }`
         },
         {
@@ -44,10 +114,63 @@ class AzureDevOps extends React.Component {
           }`
         }
       ]),
-      selectedRawDataIndex: 1,
+      selectedRawDataIndex: 0,
       templates: fromJS([
         {
-          title: 'Identity',
+          "title": "Restaurants",
+          content: `{
+            "header": {
+              "title": "{{microdata.Restaurant[0].name}}",
+              "attribution": "{{metatags['application-name'][0]}}",
+              "image": "{{microdata.Restaurant[0].image}}"
+            },
+            "body": [
+              {
+                "type": "Container",
+                "items": [
+                  {
+                    "type": "TextBlock",
+                    "text": "$fn_starize({{microdata.Restaurant[0].aggregateRating.ratingValue}}) {{microdata.Restaurant[0].aggregateRating.reviewCount}} reviews",
+                    "isSubtle": true
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": "Price range: {{microdata.Restaurant[0].priceRange}}",
+                    "spacing": "none"
+                  }
+                ]
+              },
+              {
+                "type": "TextBlock",
+                "text": "{{microdata.Restaurant[0].telephone}} · {{microdata.Restaurant[0].address.streetAddress}} \\n{{microdata.Restaurant[0].address.addressLocality}}, {{microdata.Restaurant[0].address.addressRegion}} {{microdata.Restaurant[0].address.postalCode}}",
+                "wrap": true,
+                "maxLines": 2,
+                "spacing": "none",
+                "isSubtle": true
+              }
+            ]
+          }`
+        },
+        {
+          "title": "Article",
+          content: `{
+            "header": {
+              "title": "{{jsonld.NewsArticle[0].headline}}",
+              "subtitle": "{{jsonld.NewsArticle[0].description}}",
+              "attribution": "{{jsonld.NewsArticle[0].publisher.logo.url}}",
+              "image": "{{jsonld.NewsArticle[0].image[0].url}}"
+            },
+            "actions": [
+              {
+                "type": "Action.OpenUrl",
+                "title": "Go to Source",
+                "url": "{{jsonld.NewsArticle[0].mainEntityOfPage}}"
+              }
+            ]
+          }`
+        },
+        {
+          title: 'Example',
           content: `{
             "header": {
               "title": "{{a_title}}",
@@ -310,15 +433,10 @@ class AzureDevOps extends React.Component {
                         "text": "{{header.title}}",
                         "size": "large",
                         "weight": "bolder",
-                        "color": "dark"
-                      },
-                      {
-                        "type": "TextBlock",
-                        "text": "{{header.subtitle}}",
-                        "size": "medium",
                         "color": "dark",
-                        "maxLines": 1
-                      }
+                        "maxLines": 3
+                      },
+                      "{{body[0]}}"
                     ]
                   }
                 ]
