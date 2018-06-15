@@ -23,38 +23,34 @@ class HostedAdaptiveCards extends React.Component {
       scenarios: fromJS({
         localBusiness: {
           adaptiveCard: `{ 
-            "type": "AdaptiveCard", 
-            "version": "1.0", 
+            "type": "AdaptiveCard",
+            "version": "1.0",
+            "data": {
+              "entities": [
+                {
+                  "name": "Microsoft",
+                  "category": "Company",
+                  "imageUrl": "http://thepixelweb.com/wp-content/uploads/2012/08/Microsoft-new-logo.png",
+                  "url": "https://microsoft.com"
+                },
+                {
+                  "name": "Sea Otter",
+                  "category": "Animal",
+                  "imageUrl": "https://seaotters.com/wp-content/uploads/2012/03/628x353-otter-cu-yawn.jpg",
+                  "url": "https://en.wikipedia.org/wiki/Sea_otter"
+                }
+              ]
+            },
             "body": [
+              {
+                "type": "HostedCard",
+                "data": "{{entities[0]}}",
+                "card": "adaptivecards.io/cards?id=test"
+              },
               { 
                 "type": "HostedCard",
-                "card": {
-                  "type": "AdaptiveCard",
-                  "version": "1.0",
-                  "speak": "This business is Microsoft",
-                  "fallbackText": "This business is Microsoft",
-                  "header": {
-                    "title": "Microsoft",
-                    "image": "https://microsoft.com/logo.png"
-                  },
-                  "actions": [
-                    {
-                      "type": "Action.OpenUrl",
-                      "title": "Website",
-                      "url": "https://microsoft.com"
-                    }
-                  ],
-                  "body": [
-                    {
-                      "type": "Image",
-                      "url": "https://microsoft.com/logo.png"
-                    },
-                    {
-                      "type": "TextBlock", 
-                      "text": "Microsoft" 
-                    }
-                  ]
-                }
+                "data": "{{entities[1]}}",
+                "card": "adaptivecards.io/cards?id=test"
               }
             ]
           }`,
@@ -110,7 +106,52 @@ class HostedAdaptiveCards extends React.Component {
                 ]
               }
             ]
-          }`
+          }`,
+          cardDictionary: {
+            'adaptivecards.io/cards?id=test': `{
+              "type": "AdaptiveCard",
+              "version": "1.0",
+              "speak": "This is {{name}}",
+              "fallbackText": "This is {{name}}",
+              "header": {
+                "title": "{{name}}",
+                "image": "{{imageUrl}}"
+              },
+              "actions": [
+                {
+                  "type": "Action.OpenUrl",
+                  "title": "Go to {{name}}",
+                  "url": "{{url}}"
+                }
+              ],
+              "body": [
+                {
+                  "type": "ColumnSet",
+                  "columns": [
+                    {
+                      "type": "Column",
+                      "items": [
+                        {
+                          "type": "Image",
+                          "url": "{{imageUrl}}",
+                          "size": "medium"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Column",
+                      "items": [
+                        {
+                          "type": "TextBlock", 
+                          "text": "{{category}}" 
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }`
+          }
         }
       })
     };
@@ -118,7 +159,7 @@ class HostedAdaptiveCards extends React.Component {
 
   selectScenarioKey = (event) => {
     const target = event.target;
-    this.setState(({ activeScenarioKey }) => ({ activeScenarioKey: target.value }));
+    this.setState({ activeScenarioKey: target.value });
   }
 
   onComponentChange = (event) => {
@@ -146,6 +187,7 @@ class HostedAdaptiveCards extends React.Component {
           adaptiveCard={cardJson}
           hostConfig={activeScenario.get('hostConfig')}
           hostLayout={tryParseJson(activeScenario.get('hostLayout'))}
+          componentDictionary={activeScenario.get('cardDictionary').toJS()}
         />
       </ErrorBoundary>
     ) : (
