@@ -54,8 +54,58 @@ class HostedAdaptiveCards extends React.Component {
               }
             ]
           }`,
-          hostConfig: HostConfigs.windowsNotifications,
-          hostLayout: `{
+          cardDictionary: {
+            'adaptivecards.io/cards?id=test': `{
+              "type": "AdaptiveCard",
+              "version": "1.0",
+              "speak": "This is {{name}}",
+              "fallbackText": "This is {{name}}",
+              "header": {
+                "title": "{{name}}",
+                "image": "{{imageUrl}}"
+              },
+              "actions": [
+                {
+                  "type": "Action.OpenUrl",
+                  "title": "Go to {{name}}",
+                  "url": "{{url}}"
+                }
+              ],
+              "body": [
+                {
+                  "type": "ColumnSet",
+                  "columns": [
+                    {
+                      "type": "Column",
+                      "items": [
+                        {
+                          "type": "TextBlock",
+                          "text": "URL: {{url}}"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Column",
+                      "items": [
+                        {
+                          "type": "TextBlock", 
+                          "text": "{{category}}",
+                          "weight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }`
+          }
+        }
+      }),
+      hosts: [
+        {
+          title: 'Normal',
+          config: HostConfigs.windowsNotifications,
+          layout: `{
             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
             "type": "AdaptiveCard",
             "version": "1.0",
@@ -106,54 +156,46 @@ class HostedAdaptiveCards extends React.Component {
                 ]
               }
             ]
-          }`,
-          cardDictionary: {
-            'adaptivecards.io/cards?id=test': `{
-              "type": "AdaptiveCard",
-              "version": "1.0",
-              "speak": "This is {{name}}",
-              "fallbackText": "This is {{name}}",
-              "header": {
-                "title": "{{name}}",
-                "image": "{{imageUrl}}"
-              },
-              "actions": [
-                {
-                  "type": "Action.OpenUrl",
-                  "title": "Go to {{name}}",
-                  "url": "{{url}}"
-                }
-              ],
-              "body": [
-                {
-                  "type": "ColumnSet",
-                  "columns": [
-                    {
-                      "type": "Column",
-                      "items": [
-                        {
-                          "type": "Image",
-                          "url": "{{imageUrl}}",
-                          "size": "medium"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "Column",
-                      "items": [
-                        {
-                          "type": "TextBlock", 
-                          "text": "{{category}}" 
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }`
-          }
+          }`
+        },
+        {
+          title: 'List Item',
+          config: HostConfigs.windowsNotifications,
+          layout: `{
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "type": "AdaptiveCard",
+            "version": "1.0",
+            "body": [
+              {
+                "type": "ColumnSet",
+                "columns": [
+                  {
+                    "type": "Column",
+                    "items": [
+                      {
+                        "type": "Image",
+                        "url": "{{header.image}}",
+                        "size": "medium"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Column",
+                    "items": [
+                      {
+                        "type": "TextBlock",
+                        "text": "{{header.title}}",
+                        "weight": "bolder",
+                        "color": "dark"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }`
         }
-      })
+      ]
     };
   }
 
@@ -176,24 +218,27 @@ class HostedAdaptiveCards extends React.Component {
     }));
   }
 
+  /* Generate all cards corresponding to each host */
+  generateCards = (scenario) => {
+    const cardPayload = tryParseJson(scenario.get('adaptiveCard'));
+
+    return cardPayload ? this.state.hosts.map(host => (
+      <div className="w3-third" style={{ padding: 2 }}>
+        <ErrorBoundary>
+          <AdaptiveCardView
+            adaptiveCard={cardPayload}
+            hostConfig={host.config}
+            hostLayout={tryParseJson(host.layout)}
+            componentDictionary={scenario.get('cardDictionary').toJS()}
+            maxWidth={300}
+          />
+        </ErrorBoundary>
+      </div>
+    )) : (<p>Invalid Card Payloada</p>)
+  }
+
   render() {
     const activeScenario = this.state.scenarios.get(this.state.activeScenarioKey);
-
-    // Handle invalid Card JSON
-    const cardJson = tryParseJson(activeScenario.get('adaptiveCard'));
-    const liveCardComponent = cardJson ? (
-      <ErrorBoundary>
-        <AdaptiveCardView
-          adaptiveCard={cardJson}
-          hostConfig={activeScenario.get('hostConfig')}
-          hostLayout={tryParseJson(activeScenario.get('hostLayout'))}
-          componentDictionary={activeScenario.get('cardDictionary').toJS()}
-        />
-      </ErrorBoundary>
-    ) : (
-        <p>Invalid Card</p>
-      );
-
     return (
       <div className="Components">
         <div className="w3-row">
@@ -204,18 +249,7 @@ class HostedAdaptiveCards extends React.Component {
           </select>
         </div>
         <div className="w3-row">
-          <div className="w3-third Components-section">
-            <h2>{'Component Editor '}</h2>
-            <textarea
-              value={activeScenario.get('adaptiveCard')}
-              onChange={this.onComponentChange}
-              style={{
-                overflowY: "scroll",
-                maxHeight: "800px"
-              }}
-            />
-          </div>
-          <div className="w3-third Components-section">
+          <div className="w3-quarter Components-section">
             <h2>Adaptive Card Editor</h2>
             <textarea
               value={activeScenario.get('adaptiveCard')}
@@ -226,9 +260,9 @@ class HostedAdaptiveCards extends React.Component {
               }}
             />
           </div>
-          <div className="w3-third Components-section">
+          <div className="w3-threequarter Components-section">
             <h2>Live Card preview</h2>
-            {liveCardComponent}
+            {this.generateCards(activeScenario)}
           </div>
         </div>
       </div>
