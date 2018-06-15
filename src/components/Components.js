@@ -14,7 +14,9 @@ function tryParseJson(str) {
     return undefined;
   }
 }
-
+/** TODOs:
+ * - Components & ComponentUsage: Rename Data element to HostedCard
+ */
 class Components extends React.Component {
   constructor(props) {
     super(props);

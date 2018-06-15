@@ -4,13 +4,11 @@ import * as ST from "stjs";
 import AdaptiveCardView from 'reactxp-adaptivecards';
 
 /** TODO
- *  - Rename Data element to HostedCard
- *  - 2nd column should add "type": "AdaptiveCard"
- *  - Host Config layout is just a Container
+ *  - A host with image as background
  *  - Extensions?
  *  - fallback text for body (summaryText)
  *  - Handle empty/missing/null data
- *    - Add a parameter in STjs to enforce existentiality?
+ *    + Add a parameter in STjs to enforce existentiality?
  */
 
 /** Data Flow: {Raw Data} -{Template}-> {Card Payload} -{Host Config}-> {Card UI Element} */
@@ -125,6 +123,9 @@ class AzureDevOps extends React.Component {
         {
           "title": "Restaurants",
           content: `{
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "type": "AdaptiveCard",
+            "version": "1.0",
             "header": {
               "title": "{{microdata.Restaurant[0].name}}",
               "attribution": "{{metatags['application-name'][0]}}",
@@ -160,6 +161,9 @@ class AzureDevOps extends React.Component {
         {
           "title": "Article",
           content: `{
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "type": "AdaptiveCard",
+            "version": "1.0",
             "header": {
               "title": "{{jsonld.NewsArticle[0].headline}}",
               "subtitle": "{{jsonld.NewsArticle[0].description}}",
@@ -178,6 +182,9 @@ class AzureDevOps extends React.Component {
         {
           title: 'Example',
           content: `{
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "type": "AdaptiveCard",
+            "version": "1.0",
             "header": {
               "title": "{{a_title}}",
               "subtitle": "{{a_subtitle}}",

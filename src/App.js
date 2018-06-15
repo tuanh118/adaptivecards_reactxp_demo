@@ -6,13 +6,14 @@ import Components from './components/Components';
 import ComponentUsage from './components/ComponentUsage';
 import DevDataBinding from './components/DevDataBinding';
 import AzureDevOps from './components/AzureDevOps';
+import HostedAdaptiveCards from './components/HostedAdaptiveCards';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      scenarioId: 4
+      scenarioId: 6
     };
   }
 
@@ -32,6 +33,8 @@ class App extends React.Component {
         return <DevDataBinding />;
       case (5):
         return <AzureDevOps />;
+      case (6):
+        return <HostedAdaptiveCards />;
       default:
         return <div>Invalid scenario</div>;
     }
@@ -53,6 +56,7 @@ class App extends React.Component {
               <option value={3}>Component Usage</option>
               <option value={4}>Developer Data Binding</option>
               <option value={5}>Azure DevOps</option>
+              <option value={6}>Hosted Adaptive Cards</option>
             </select>
           </h1>
         </header>
