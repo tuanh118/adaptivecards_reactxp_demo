@@ -50,6 +50,7 @@ class HostedAdaptiveCards extends React.Component {
               { 
                 "type": "HostedCard",
                 "data": "{{entities[1]}}",
+                "layout": "hero",
                 "card": "adaptivecards.io/cards?id=test"
               }
             ]
@@ -109,53 +110,83 @@ class HostedAdaptiveCards extends React.Component {
             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
             "type": "AdaptiveCard",
             "version": "1.0",
-            "body": [
-              {
-                "type": "Container",
-                "items": [
-                  {
-                    "type": "Image",
-                    "url": "{{header.image}}",
-                    "size": "auto"
-                  },
-                  {
-                    "type": "TextBlock",
-                    "text": "{{header.title}}",
-                    "size": "large",
-                    "weight": "bolder",
-                    "color": "dark"
-                  },
-                  {
-                    "type": "TextBlock",
-                    "text": [{
-                      "{{#if 'subtitle' in this.header}}": "{{header.subtitle}}"
-                    }, {
-                      "{{#else}}": null
-                    }],
-                    "size": "medium",
-                    "color": "dark"
-                  },
-                  {
-                    "type": "Container",
-                    "items": "{{body}}"
-                  },
-                  {
-                    "type": "Image",
-                    "url": [{
-                      "{{#if 'attribution' in this.header}}": "{{header.attribution}}"
-                    }, {
-                      "{{#else}}": null
-                    }],
-                    "horizontalAlignment": "left",
-                    "size": "medium"
-                  },
-                  {
-                    "type": "ActionSet",
-                    "actions": "{{actions}}"
-                  }
-                ]
-              }
-            ]
+            "bodies": {
+              "default": [
+                {
+                  "type": "ColumnSet",
+                  "columns": [
+                    {
+                      "type": "Column",
+                      "items": [
+                        {
+                          "type": "Image",
+                          "url": "{{header.image}}",
+                          "size": "medium"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Column",
+                      "items": [
+                        {
+                          "type": "TextBlock",
+                          "text": "{{header.title}}",
+                          "weight": "bolder",
+                          "color": "dark"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "hero": [
+                {
+                  "type": "Container",
+                  "items": [
+                    {
+                      "type": "Image",
+                      "url": "{{header.image}}",
+                      "size": "auto"
+                    },
+                    {
+                      "type": "TextBlock",
+                      "text": "{{header.title}}",
+                      "size": "large",
+                      "weight": "bolder",
+                      "color": "dark"
+                    },
+                    {
+                      "type": "TextBlock",
+                      "text": [{
+                        "{{#if 'subtitle' in this.header}}": "{{header.subtitle}}"
+                      }, {
+                        "{{#else}}": null
+                      }],
+                      "size": "medium",
+                      "color": "dark"
+                    },
+                    {
+                      "type": "Container",
+                      "items": "{{body}}"
+                    },
+                    {
+                      "type": "Image",
+                      "url": [{
+                        "{{#if 'attribution' in this.header}}": "{{header.attribution}}"
+                      }, {
+                        "{{#else}}": null
+                      }],
+                      "horizontalAlignment": "left",
+                      "size": "medium"
+                    },
+                    {
+                      "type": "ActionSet",
+                      "actions": "{{actions}}"
+                    }
+                  ]
+                }
+              ]
+            }
           }`
         },
         {
@@ -223,7 +254,7 @@ class HostedAdaptiveCards extends React.Component {
     const cardPayload = tryParseJson(scenario.get('adaptiveCard'));
 
     return cardPayload ? this.state.hosts.map(host => (
-      <div className="w3-third" style={{ padding: 2 }}>
+      <div className="w3-half" style={{ padding: 2 }} key={host.title}>
         <ErrorBoundary>
           <AdaptiveCardView
             adaptiveCard={cardPayload}
