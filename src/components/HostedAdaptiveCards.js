@@ -14,6 +14,21 @@ function tryParseJson(str) {
   }
 }
 
+/** Features:
+ * - AdaptiveCard.Template adds knownLayouts so template authors can toggle between layouts using Container isVisible
+ * - HostConfig adds knownLayouts to describe different layouts (expanded/collapsed). Using isVisible binding to toggle elements based on current layout
+ * - Bind from different data sources
+ *   + from "card" (with header, body, actions, extensions)
+ *   + from "hostConfig"
+ *   + from "viewState" as a prop (type string, only used to toggle host's viewState)
+ *     . Change "layout" in host layout to "viewState"
+ */
+
+/** TODO:
+ * - Action.ToggleViewState
+ * - HostConfig adds knownExtensions, for card author to auto-support on a plain-host
+ *   + AdaptiveCard.Template can bind to HostConfig.knownExtensions to provide a default rendering
+ */
 class HostedAdaptiveCards extends React.Component {
   constructor(props) {
     super(props);
@@ -31,13 +46,19 @@ class HostedAdaptiveCards extends React.Component {
                   "name": "Microsoft",
                   "category": "Company",
                   "imageUrl": "http://thepixelweb.com/wp-content/uploads/2012/08/Microsoft-new-logo.png",
-                  "url": "https://microsoft.com"
+                  "url": "https://microsoft.com",
+                  "attribution": {
+                    "name": "MSFT"
+                  }
                 },
                 {
                   "name": "Sea Otter",
                   "category": "Animal",
                   "imageUrl": "https://seaotters.com/wp-content/uploads/2012/03/628x353-otter-cu-yawn.jpg",
-                  "url": "https://en.wikipedia.org/wiki/Sea_otter"
+                  "url": "https://en.wikipedia.org/wiki/Sea_otter",
+                  "attribution": {
+                    "name": "Animal Planet"
+                  }
                 }
               ]
             },
@@ -45,22 +66,23 @@ class HostedAdaptiveCards extends React.Component {
               {
                 "type": "HostedCard",
                 "data": "{{entities[0]}}",
-                "card": "adaptivecards.io/cards?id=test"
+                "templateUrl": "adaptivecards.io/templates?id=test"
               },
               { 
                 "type": "HostedCard",
                 "data": "{{entities[1]}}",
-                "layout": "hero",
-                "card": "adaptivecards.io/cards?id=test"
+                "layout": "compact",
+                "templateUrl": "adaptivecards.io/templates?id=test"
               }
             ]
           }`,
-          cardDictionary: {
-            'adaptivecards.io/cards?id=test': `{
+          templateDictionary: {
+            'adaptivecards.io/templates?id=test': `{
               "type": "AdaptiveCard",
               "version": "1.0",
               "speak": "This is {{name}}",
               "fallbackText": "This is {{name}}",
+              "knownLayouts": ["default", "compact"],
               "header": {
                 "title": "{{name}}",
                 "image": "{{imageUrl}}"
@@ -74,6 +96,7 @@ class HostedAdaptiveCards extends React.Component {
               ],
               "body": [
                 {
+                  "isVisible": ["default"],
                   "type": "ColumnSet",
                   "columns": [
                     {
@@ -81,7 +104,7 @@ class HostedAdaptiveCards extends React.Component {
                       "items": [
                         {
                           "type": "TextBlock",
-                          "text": "URL: {{url}}"
+                          "text": "Default URL: {{url}}"
                         }
                       ]
                     },
@@ -89,123 +112,120 @@ class HostedAdaptiveCards extends React.Component {
                       "type": "Column",
                       "items": [
                         {
-                          "type": "TextBlock", 
-                          "text": "{{category}}",
+                          "type": "TextBlock",
+                          "text": "Default {{category}}",
                           "weight": "bold"
                         }
                       ]
                     }
                   ]
+                },
+                {
+                  "isVisible": ["compact"],
+                  "type": "Container",
+                  "items": [
+                    {
+                      "type": "TextBlock",
+                      "text": "Compact URL: {{url}}"
+                    },
+                    {
+                      "type": "TextBlock",
+                      "text": "Compact {{category}}",
+                      "weight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "TextBlock",
+                  "text": "Everywhere URL: {{url}}"
                 }
-              ]
+              ],
+              "extensions": {
+                "attribution": "{{attribution}}",
+                "unsupported": "Should not show"
+              }
             }`
           }
         }
       }),
       hosts: [
         {
-          title: 'Normal',
+          title: 'Notifications',
           config: HostConfigs.windowsNotifications,
+          viewState: 'expanded',
           layout: `{
             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
             "type": "AdaptiveCard",
             "version": "1.0",
-            "bodies": {
-              "default": [
-                {
-                  "type": "ColumnSet",
-                  "columns": [
-                    {
-                      "type": "Column",
-                      "items": [
-                        {
-                          "type": "Image",
-                          "url": "{{header.image}}",
-                          "size": "medium"
-                        }
-                      ]
-                    },
-                    {
-                      "type": "Column",
-                      "items": [
-                        {
-                          "type": "TextBlock",
-                          "text": "{{header.title}}",
-                          "weight": "bolder",
-                          "color": "dark"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ],
-              "hero": [
-                {
-                  "type": "Container",
-                  "items": [
-                    {
-                      "type": "Image",
-                      "url": "{{header.image}}",
-                      "size": "auto"
-                    },
-                    {
-                      "type": "TextBlock",
-                      "text": "{{header.title}}",
-                      "size": "large",
-                      "weight": "bolder",
-                      "color": "dark"
-                    },
-                    {
-                      "type": "TextBlock",
-                      "text": [{
-                        "{{#if 'subtitle' in this.header}}": "{{header.subtitle}}"
-                      }, {
-                        "{{#else}}": null
-                      }],
-                      "size": "medium",
-                      "color": "dark"
-                    },
-                    {
-                      "type": "Container",
-                      "items": "{{body}}"
-                    },
-                    {
-                      "type": "Image",
-                      "url": [{
-                        "{{#if 'attribution' in this.header}}": "{{header.attribution}}"
-                      }, {
-                        "{{#else}}": null
-                      }],
-                      "horizontalAlignment": "left",
-                      "size": "medium"
-                    },
-                    {
-                      "type": "ActionSet",
-                      "actions": "{{actions}}"
-                    }
-                  ]
-                }
-              ]
-            }
-          }`
-        },
-        {
-          title: 'List Item',
-          config: HostConfigs.windowsNotifications,
-          layout: `{
-            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-            "type": "AdaptiveCard",
-            "version": "1.0",
+            "knownExtensions": ["attribution"],
+            "knownViewStates": ["collapsed", "expanded"],
             "body": [
               {
+                "type": "Container",
+                "isVisible": ["expanded"],
+                "items": [
+                  {
+                    "type": "Image",
+                    "url": "{{card.header.image}}",
+                    "size": "auto"
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": "{{card.header.title}}",
+                    "size": "large",
+                    "weight": "bolder",
+                    "color": "dark"
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": [{
+                      "{{#if 'subtitle' in this.card.header}}": "{{card.header.subtitle}}"
+                    }, {
+                      "{{#else}}": null
+                    }],
+                    "size": "medium",
+                    "color": "dark"
+                  },
+                  {
+                    "type": "Container",
+                    "items": "{{card.body}}"
+                  },
+                  {
+                    "type": "Image",
+                    "url": [{
+                      "{{#if 'attribution' in this.card.header}}": "{{card.header.attribution}}"
+                    }, {
+                      "{{#else}}": null
+                    }],
+                    "horizontalAlignment": "left",
+                    "size": "medium"
+                  },
+                  {
+                    "type": "TextBlock",
+                    "items": [
+                      {
+                        "type": "TextBlock",
+                        "text": "{{card.extensions.unsupported}}",
+                        "size": "small"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "ActionSet",
+                    "actions": "{{card.actions}}"
+                  }
+                ]
+              },
+              {
                 "type": "ColumnSet",
+                "isVisible": ["collapsed"],
                 "columns": [
                   {
                     "type": "Column",
                     "items": [
                       {
                         "type": "Image",
-                        "url": "{{header.image}}",
+                        "url": "{{card.header.image}}",
                         "size": "medium"
                       }
                     ]
@@ -215,7 +235,56 @@ class HostedAdaptiveCards extends React.Component {
                     "items": [
                       {
                         "type": "TextBlock",
-                        "text": "{{header.title}}",
+                        "text": "{{card.header.title}}",
+                        "weight": "bolder",
+                        "color": "dark"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Column",
+                    "items": [
+                      {
+                        "type": "TextBlock",
+                        "text": "{{card.extensions.attribution.name}}",
+                        "size": "small"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }`
+        },
+        {
+          title: 'Timeline',
+          config: HostConfigs.windowsTimeline,
+          viewState: 'collapsed',
+          layout: `{
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "type": "AdaptiveCard",
+            "version": "1.0",
+            "knownViewStates": ["collapsed"],
+            "body": [
+              {
+                "type": "ColumnSet",
+                "columns": [
+                  {
+                    "type": "Column",
+                    "items": [
+                      {
+                        "type": "Image",
+                        "url": "{{card.header.image}}",
+                        "size": "medium"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Column",
+                    "items": [
+                      {
+                        "type": "TextBlock",
+                        "text": "{{card.header.title}}",
                         "weight": "bolder",
                         "color": "dark"
                       }
@@ -259,8 +328,9 @@ class HostedAdaptiveCards extends React.Component {
           <AdaptiveCardView
             adaptiveCard={cardPayload}
             hostConfig={host.config}
-            hostLayout={tryParseJson(host.layout)}
-            componentDictionary={scenario.get('cardDictionary').toJS()}
+            hostLayout={host.layout}
+            viewState={host.viewState}
+            templateDictionary={scenario.get('templateDictionary').toJS()}
             maxWidth={300}
           />
         </ErrorBoundary>

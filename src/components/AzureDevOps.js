@@ -4,11 +4,14 @@ import * as ST from "stjs";
 import AdaptiveCardView from 'reactxp-adaptivecards';
 
 /** TODO
- *  - A host with image as background
- *  - Extensions?
- *  - fallback text for body (summaryText)
- *  - Handle empty/missing/null data
- *    + Add a parameter in STjs to enforce existentiality?
+ *  - 1st column: list of data sources. Click to show text box. Able to create new one and edit
+ *  - 2nd column: list of template URLs. Click to show template JSON. Able to create new one and edit
+ *    + templates.adaptivecards.io/restaurants
+ *    + adaptivecards.azure.com/templates/deployment
+ *  - 3rd column: card UIs with names and click to show host layout
+ *  - Add timeline host with image as background
+ *  - Add a host similar to FB messenger
+ *  - Handle empty/missing/null data (#?)
  */
 
 /** Data Flow: {Raw Data} -{Template}-> {Card Payload} -{Host Config}-> {Card UI Element} */
@@ -128,7 +131,6 @@ class AzureDevOps extends React.Component {
             "version": "1.0",
             "header": {
               "title": "{{microdata.Restaurant[0].name}}",
-              "attribution": "{{metatags['application-name'][0]}}",
               "image": "{{microdata.Restaurant[0].image}}"
             },
             "body": [
@@ -155,7 +157,12 @@ class AzureDevOps extends React.Component {
                 "spacing": "none",
                 "isSubtle": true
               }
-            ]
+            ],
+            "extensions": {
+              "attribution": {
+                "name": "{{metatags['application-name'][0]}}"
+              }
+            }
           }`
         },
         {
@@ -167,7 +174,6 @@ class AzureDevOps extends React.Component {
             "header": {
               "title": "{{jsonld.NewsArticle[0].headline}}",
               "subtitle": "{{jsonld.NewsArticle[0].description}}",
-              "attribution": "{{jsonld.NewsArticle[0].publisher.logo.url}}",
               "image": "{{jsonld.NewsArticle[0].image[0].url}}"
             },
             "actions": [
@@ -176,7 +182,12 @@ class AzureDevOps extends React.Component {
                 "title": "Go to Source",
                 "url": "{{jsonld.NewsArticle[0].mainEntityOfPage}}"
               }
-            ]
+            ],
+            "extensions": {
+              "attribution": {
+                "imageUrl": "{{jsonld.NewsArticle[0].publisher.logo.url}}"
+              }
+            }
           }`
         },
         {
@@ -188,7 +199,6 @@ class AzureDevOps extends React.Component {
             "header": {
               "title": "{{a_title}}",
               "subtitle": "{{a_subtitle}}",
-              "attribution": "{{a_attribution}}",
               "image": "{{a_image}}"
             },
             "body": [
@@ -230,7 +240,12 @@ class AzureDevOps extends React.Component {
                 "title": "Source",
                 "url": "{{a_url}}"
               }
-            ]
+            ],
+            "extensions": {
+              "attribution": {
+                "imageUrl": "{{a_attribution}}"
+              }
+            }
           }`
         }
       ]),
@@ -274,14 +289,31 @@ class AzureDevOps extends React.Component {
                     "items": "{{body}}"
                   },
                   {
-                    "type": "Image",
-                    "url": [{
-                      "{{#if 'attribution' in this.header}}": "{{header.attribution}}"
+                    "type": "Container",
+                    "items": [{
+                      "{{#if 'attribution' in this.extensions}}": [
+                        {
+                          "type": "Image",
+                          "url": [{
+                            "{{#if 'imageUrl' in this.extensions.attribution}}": "{{extensions.attribution.imageUrl}}"
+                          }, {
+                            "{{#else}}": null
+                          }],
+                          "horizontalAlignment": "left",
+                          "size": "medium"
+                        },
+                        {
+                          "type": "TextBlock",
+                          "text": [{
+                            "{{#if 'name' in this.extensions.attribution}}": "{{extensions.attribution.name}}"
+                          }, {
+                            "{{#else}}": null
+                          }]
+                        }
+                      ]
                     }, {
-                      "{{#else}}": null
-                    }],
-                    "horizontalAlignment": "left",
-                    "size": "medium"
+                      "{{#else}}": []
+                    }]
                   },
                   {
                     "type": "ActionSet",
