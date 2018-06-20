@@ -26,6 +26,7 @@ function tryParseJson(str) {
 
 /** TODO:
  * - Action.ToggleViewState
+ * - Add host layout, knownViewStates, and default viewState into normal host config
  * - HostConfig adds knownExtensions, for card author to auto-support on a plain-host
  *   + AdaptiveCard.Template can bind to HostConfig.knownExtensions to provide a default rendering
  */

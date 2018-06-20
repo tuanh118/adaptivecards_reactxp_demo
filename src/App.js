@@ -13,7 +13,7 @@ class App extends React.Component {
     super(props);
 
     this.state = {
-      scenarioId: 6
+      scenarioId: 5
     };
   }
 
@@ -44,12 +44,13 @@ class App extends React.Component {
     return (
       <div className="App">
         <header className="App-header">
-          <img
-            src="http://adaptivecards.io/content/adaptive-card-200.png"
-            className="App-logo"
-            alt="logo"
-          />
-          <h1 className="App-title">{'Adaptive Cards 2.0 '}
+          <h1 className="App-title">
+            <img
+              src="http://adaptivecards.io/content/adaptive-card-200.png"
+              className="App-logo"
+              alt="logo"
+            />
+            {' Adaptive Cards 2.0 '}
             <select value={this.state.scenarioId} onChange={this.selectScenarioId}>
               <option value={1}>AdaptiveFrame</option>
               <option value={2}>Components</option>

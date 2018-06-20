@@ -3,11 +3,14 @@ import { fromJS } from "immutable";
 import * as ST from "stjs";
 import AdaptiveCardView from 'reactxp-adaptivecards';
 
-/** TODO
+/** Features
  *  - 1st column: list of data sources. Click to show text box. Able to create new one and edit
  *  - 2nd column: list of template URLs. Click to show template JSON. Able to create new one and edit
  *    + templates.adaptivecards.io/restaurants
  *    + adaptivecards.azure.com/templates/deployment
+ */
+
+/** TODO
  *  - 3rd column: card UIs with names and click to show host layout
  *  - Add timeline host with image as background
  *  - Add a host similar to FB messenger
@@ -15,6 +18,23 @@ import AdaptiveCardView from 'reactxp-adaptivecards';
  */
 
 /** Data Flow: {Raw Data} -{Template}-> {Card Payload} -{Host Config}-> {Card UI Element} */
+
+const rawDataDefault = '';
+const templateDefault = '';
+
+const errorBorderStyle = {
+  borderWidth: "2px",
+  borderColor: "red"
+};
+
+function tryParseJson(str) {
+  try {
+    return JSON.parse(str);
+  } catch (e) {
+    return null;
+  }
+}
+
 class AzureDevOps extends React.Component {
   constructor(props) {
     super(props);
@@ -121,10 +141,11 @@ class AzureDevOps extends React.Component {
         }
       ]),
       selectedRawDataIndex: 0,
+      isRawDataEditorHidden: true,
 
       templates: fromJS([
         {
-          "title": "Restaurants",
+          "title": "templates.adaptivecards.io/restaurants",
           content: `{
             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
             "type": "AdaptiveCard",
@@ -166,7 +187,7 @@ class AzureDevOps extends React.Component {
           }`
         },
         {
-          "title": "Article",
+          "title": "templates.adaptivecards.io/articles",
           content: `{
             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
             "type": "AdaptiveCard",
@@ -191,7 +212,7 @@ class AzureDevOps extends React.Component {
           }`
         },
         {
-          title: 'Example',
+          title: 'adaptivecards.azure.com/templates/deployment',
           content: `{
             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
             "type": "AdaptiveCard",
@@ -250,6 +271,7 @@ class AzureDevOps extends React.Component {
         }
       ]),
       selectedTemplateIndex: 0,
+      isTemplateEditorHidden: true,
 
       hosts: fromJS([
         {
@@ -823,6 +845,31 @@ class AzureDevOps extends React.Component {
     };
   }
 
+  /** Raw Data helper functions */
+  selectRawData = (index) => () => {
+    this.setState({
+      selectedRawDataIndex: index
+    });
+  }
+
+  toggleRawDataEditor = () => {
+    this.setState(({ isRawDataEditorHidden }) => ({
+      isRawDataEditorHidden: !isRawDataEditorHidden
+    }));
+  }
+
+  createNewRawData = () => {
+    const currentSize = this.state.rawData.size;
+
+    this.setState(({ rawData }) => ({
+      rawData: rawData.push(fromJS({
+        title: `Raw Data ${currentSize}`,
+        content: rawDataDefault
+      })),
+      selectedRawDataIndex: currentSize
+    }));
+  }
+
   onRawDataChange = (index) => (event) => {
     const { rawData } = this.state;
     this.setState({
@@ -830,37 +877,58 @@ class AzureDevOps extends React.Component {
     });
   }
 
-  selectRawData = (index) => () => {
-    this.setState({
-      selectedRawDataIndex: index
-    });
-  }
-
+  /** Template helper functions */
   selectTemplate = (index) => () => {
     this.setState({
       selectedTemplateIndex: index
     });
   }
 
+  toggleTemplateEditor = () => {
+    this.setState(({ isTemplateEditorHidden }) => ({
+      isTemplateEditorHidden: !isTemplateEditorHidden
+    }));
+  }
+
+  createNewTemplate = () => {
+    const currentSize = this.state.templates.size;
+
+    this.setState(({ templates }) => ({
+      templates: templates.push(fromJS({
+        title: `Template ${currentSize}`,
+        content: templateDefault
+      })),
+      selectedTemplateIndex: currentSize
+    }));
+  }
+
+  onTemplateChange = (index) => (event) => {
+    const { templates } = this.state;
+    this.setState({
+      templates: templates.setIn([index, 'content'], event.target.value)
+    });
+  }
+
   /* Generate cards corresponding to all hosts */
-  generateCards = (payload) =>
-    this.state.hosts.map(h => ST.select(payload)
+  generateCards = (payload) => {
+    return this.state.hosts.map(h => ST.select(payload)
       .transformWith(JSON.parse(h.get('layout')))
-      .root()).toJS()
+      .root()).toJS();
+  }
 
   render() {
     const {
-      rawData, selectedRawDataIndex,
-      templates, selectedTemplateIndex,
+      rawData, selectedRawDataIndex, isRawDataEditorHidden,
+      templates, selectedTemplateIndex, isTemplateEditorHidden,
       hosts,
     } = this.state;
 
-    const currentRawData = JSON.parse(rawData.getIn([selectedRawDataIndex, 'content']));
-    const currentTemplate = JSON.parse(templates.getIn([selectedTemplateIndex, 'content']));
+    const currentRawData = tryParseJson(rawData.getIn([selectedRawDataIndex, 'content']));
+    const currentTemplate = tryParseJson(templates.getIn([selectedTemplateIndex, 'content']));
 
-    const payload = ST.select(currentRawData).transformWith(currentTemplate).root();
+    const payload = (currentRawData && currentTemplate) ? ST.select(currentRawData).transformWith(currentTemplate).root() : null;
 
-    const finalCards = this.generateCards(payload);
+    const finalCards = payload ? this.generateCards(payload) : null;
 
     return (
       <div className="w3-row">
@@ -868,34 +936,48 @@ class AzureDevOps extends React.Component {
           className="w3-quarter w3-container"
           style={{
             overflowY: "scroll",
-            maxHeight: "811px"
+            height: "900px"
           }}
         >
-          <h2>Azure Data</h2>
+          <h2>Raw Data Sources</h2>
           <ul>
             {rawData.map((d, i) => (
               <li
                 key={d.get('title')}
               >
-                <button onClick={this.selectRawData(i)}>
+                <button
+                  onClick={this.selectRawData(i)}
+                  style={{
+                    backgroundColor: selectedRawDataIndex === i ? 'lime' : null
+                  }}
+                >
                   {d.get('title')}
                 </button>
               </li>
             ))}
           </ul>
+          <button onClick={this.createNewRawData}>
+            +
+          </button>
+          <button onClick={this.toggleRawDataEditor}>
+            {isRawDataEditorHidden ? 'Open' : 'Close'}
+          </button>
           <textarea
-            value={JSON.stringify(currentRawData, null, 2)}
+            value={rawData.getIn([selectedRawDataIndex, 'content'])}
             onChange={this.onRawDataChange(selectedRawDataIndex)}
             style={{
-              overflowY: "scroll"
+              overflowY: "scroll",
+              borderWidth: "2px",
+              borderColor: currentRawData ? "green" : "red",
             }}
+            hidden={isRawDataEditorHidden}
           />
         </div>
         <div
           className="w3-quarter w3-container"
           style={{
             overflowY: "scroll",
-            maxHeight: "811px"
+            // height: "900px"
           }}
         >
           <h2>Templates</h2>
@@ -904,28 +986,42 @@ class AzureDevOps extends React.Component {
               <li
                 key={t.get('title')}
               >
-                <button onClick={this.selectTemplate(i)}>
+                <button
+                  onClick={this.selectTemplate(i)}
+                  style={{
+                    backgroundColor: selectedTemplateIndex === i ? 'aqua' : null
+                  }}
+                >
                   {t.get('title')}
                 </button>
               </li>
             ))}
           </ul>
+          <button onClick={this.createNewTemplate}>
+            +
+          </button>
+          <button onClick={this.toggleTemplateEditor}>
+            {isTemplateEditorHidden ? 'Open' : 'Close'}
+          </button>
           <textarea
-            value={JSON.stringify(currentTemplate, null, 2)}
-            readOnly={true}
+            value={templates.getIn([selectedTemplateIndex, 'content'])}
+            onChange={this.onTemplateChange(selectedTemplateIndex)}
             style={{
               overflowY: "scroll",
-              maxHeight: "300px"
+              borderWidth: "2px",
+              borderColor: currentTemplate ? "green" : "red",
+              // maxHeight: "780px"
             }}
+            hidden={isTemplateEditorHidden}
           />
-          <textarea
+          {/* <textarea
             value={JSON.stringify(payload, null, 2)}
             readOnly={true}
             style={{
               overflowY: "scroll",
               maxHeight: "300px"
             }}
-          />
+          /> */}
         </div>
         <div
           className="w3-half w3-container"
@@ -935,7 +1031,7 @@ class AzureDevOps extends React.Component {
           }}
         >
           <h2>Cards</h2>
-          {finalCards.map((card, i) => (
+          {finalCards ? finalCards.map((card, i) => (
             <div
               className="w3-half"
               style={{
@@ -959,7 +1055,7 @@ class AzureDevOps extends React.Component {
                 }}
               /> */}
             </div>
-          ))}
+          )) : 'Unable to generate cards'}
         </div>
       </div>
     );
