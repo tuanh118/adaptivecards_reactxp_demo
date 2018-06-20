@@ -3,29 +3,24 @@ import { fromJS } from "immutable";
 import * as ST from "stjs";
 import AdaptiveCardView from 'reactxp-adaptivecards';
 
+import * as HostConfigs from '../hostConfigs';
+
 /** Features
  *  - 1st column: list of data sources. Click to show text box. Able to create new one and edit
  *  - 2nd column: list of template URLs. Click to show template JSON. Able to create new one and edit
  *    + templates.adaptivecards.io/restaurants
  *    + adaptivecards.azure.com/templates/deployment
+ *  - 3rd column: card UIs with names and click to show host layout
  */
 
 /** TODO
- *  - 3rd column: card UIs with names and click to show host layout
- *  - Add timeline host with image as background
  *  - Add a host similar to FB messenger
- *  - Handle empty/missing/null data (#?)
  */
 
 /** Data Flow: {Raw Data} -{Template}-> {Card Payload} -{Host Config}-> {Card UI Element} */
 
 const rawDataDefault = '';
 const templateDefault = '';
-
-const errorBorderStyle = {
-  borderWidth: "2px",
-  borderColor: "red"
-};
 
 function tryParseJson(str) {
   try {
@@ -145,7 +140,7 @@ class AzureDevOps extends React.Component {
 
       templates: fromJS([
         {
-          "title": "templates.adaptivecards.io/restaurants",
+          title: "templates.adaptivecards.io/restaurants",
           content: `{
             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
             "type": "AdaptiveCard",
@@ -187,7 +182,7 @@ class AzureDevOps extends React.Component {
           }`
         },
         {
-          "title": "templates.adaptivecards.io/articles",
+          title: "templates.adaptivecards.io/articles",
           content: `{
             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
             "type": "AdaptiveCard",
@@ -298,11 +293,7 @@ class AzureDevOps extends React.Component {
                   },
                   {
                     "type": "TextBlock",
-                    "text": [{
-                      "{{#if 'subtitle' in this.header}}": "{{header.subtitle}}"
-                    }, {
-                      "{{#else}}": null
-                    }],
+                    "text": "{{#? header.subtitle}}",
                     "size": "medium",
                     "color": "dark"
                   },
@@ -316,21 +307,13 @@ class AzureDevOps extends React.Component {
                       "{{#if 'attribution' in this.extensions}}": [
                         {
                           "type": "Image",
-                          "url": [{
-                            "{{#if 'imageUrl' in this.extensions.attribution}}": "{{extensions.attribution.imageUrl}}"
-                          }, {
-                            "{{#else}}": null
-                          }],
+                          "url": "{{#? extensions.attribution.imageUrl}}",
                           "horizontalAlignment": "left",
                           "size": "medium"
                         },
                         {
                           "type": "TextBlock",
-                          "text": [{
-                            "{{#if 'name' in this.extensions.attribution}}": "{{extensions.attribution.name}}"
-                          }, {
-                            "{{#else}}": null
-                          }]
+                          "text": "{{#? extensions.attribution.name}}"
                         }
                       ]
                     }, {
@@ -345,145 +328,7 @@ class AzureDevOps extends React.Component {
               }
             ]
           }`,
-          config: {
-            "choiceSetInputValueSeparator": ",",
-            "supportsInteractivity": true,
-            "fontFamily": "Segoe UI",
-            "spacing": {
-              "small": 3,
-              "default": 8,
-              "medium": 20,
-              "large": 30,
-              "extraLarge": 40,
-              "padding": 10
-            },
-            "separator": {
-              "lineThickness": 1,
-              "lineColor": "#EEEEEE"
-            },
-            "fontSizes": {
-              "small": 12,
-              "default": 14,
-              "medium": 17,
-              "large": 21,
-              "extraLarge": 26
-            },
-            "fontWeights": {
-              "lighter": 200,
-              "default": 400,
-              "bolder": 600
-            },
-            "imageSizes": {
-              "small": 40,
-              "medium": 80,
-              "large": 160
-            },
-            "containerStyles": {
-              "default": {
-                "foregroundColors": {
-                  "default": {
-                    "default": "#333333",
-                    "subtle": "#EE333333"
-                  },
-                  "dark": {
-                    "default": "#000000",
-                    "subtle": "#66000000"
-                  },
-                  "light": {
-                    "default": "#FFFFFF",
-                    "subtle": "#33000000"
-                  },
-                  "accent": {
-                    "default": "#2E89FC",
-                    "subtle": "#882E89FC"
-                  },
-                  "good": {
-                    "default": "#54a254",
-                    "subtle": "#DD54a254"
-                  },
-                  "warning": {
-                    "default": "#c3ab23",
-                    "subtle": "#DDc3ab23"
-                  },
-                  "attention": {
-                    "default": "#FF0000",
-                    "subtle": "#DDFF0000"
-                  }
-                },
-                "backgroundColor": "#FFFFFF"
-              },
-              "emphasis": {
-                "foregroundColors": {
-                  "default": {
-                    "default": "#333333",
-                    "subtle": "#EE333333"
-                  },
-                  "dark": {
-                    "default": "#000000",
-                    "subtle": "#66000000"
-                  },
-                  "light": {
-                    "default": "#FFFFFF",
-                    "subtle": "#33000000"
-                  },
-                  "accent": {
-                    "default": "#2E89FC",
-                    "subtle": "#882E89FC"
-                  },
-                  "good": {
-                    "default": "#54a254",
-                    "subtle": "#DD54a254"
-                  },
-                  "warning": {
-                    "default": "#c3ab23",
-                    "subtle": "#DDc3ab23"
-                  },
-                  "attention": {
-                    "default": "#FF0000",
-                    "subtle": "#DDFF0000"
-                  }
-                },
-                "backgroundColor": "#08000000"
-              }
-            },
-            "actions": {
-              "maxActions": 5,
-              "spacing": "Default",
-              "buttonSpacing": 10,
-              "showCard": {
-                "actionMode": "Inline",
-                "inlineTopMargin": 16,
-                "style": "emphasis"
-              },
-              "preExpandSingleShowCardAction": false,
-              "actionsOrientation": "Horizontal",
-              "actionAlignment": "Left"
-            },
-            "adaptiveCard": {
-              "allowCustomStyle": false
-            },
-            "imageSet": {
-              "imageSize": "Medium",
-              "maxImageHeight": 100
-            },
-            "factSet": {
-              "title": {
-                "size": "Default",
-                "color": "Default",
-                "isSubtle": false,
-                "weight": "Bolder",
-                "warp": true
-              },
-              "value": {
-                "size": "Default",
-                "color": "Default",
-                "isSubtle": false,
-                "weight": "Default",
-                "warp": true
-              },
-              "spacing": 10
-            }
-          }
+          config: HostConfigs.windowsNotifications,
         },
         {
           title: 'Small',
@@ -525,145 +370,7 @@ class AzureDevOps extends React.Component {
               }
             ]
           }`,
-          config: {
-            "choiceSetInputValueSeparator": ",",
-            "supportsInteractivity": true,
-            "fontFamily": "Segoe UI",
-            "spacing": {
-              "small": 3,
-              "default": 8,
-              "medium": 20,
-              "large": 30,
-              "extraLarge": 40,
-              "padding": 10
-            },
-            "separator": {
-              "lineThickness": 1,
-              "lineColor": "#EEEEEE"
-            },
-            "fontSizes": {
-              "small": 12,
-              "default": 14,
-              "medium": 17,
-              "large": 21,
-              "extraLarge": 26
-            },
-            "fontWeights": {
-              "lighter": 200,
-              "default": 400,
-              "bolder": 600
-            },
-            "imageSizes": {
-              "small": 40,
-              "medium": 80,
-              "large": 160
-            },
-            "containerStyles": {
-              "default": {
-                "foregroundColors": {
-                  "default": {
-                    "default": "#333333",
-                    "subtle": "#EE333333"
-                  },
-                  "dark": {
-                    "default": "#000000",
-                    "subtle": "#66000000"
-                  },
-                  "light": {
-                    "default": "#FFFFFF",
-                    "subtle": "#33000000"
-                  },
-                  "accent": {
-                    "default": "#2E89FC",
-                    "subtle": "#882E89FC"
-                  },
-                  "good": {
-                    "default": "#54a254",
-                    "subtle": "#DD54a254"
-                  },
-                  "warning": {
-                    "default": "#c3ab23",
-                    "subtle": "#DDc3ab23"
-                  },
-                  "attention": {
-                    "default": "#FF0000",
-                    "subtle": "#DDFF0000"
-                  }
-                },
-                "backgroundColor": "#FFFFFF"
-              },
-              "emphasis": {
-                "foregroundColors": {
-                  "default": {
-                    "default": "#333333",
-                    "subtle": "#EE333333"
-                  },
-                  "dark": {
-                    "default": "#000000",
-                    "subtle": "#66000000"
-                  },
-                  "light": {
-                    "default": "#FFFFFF",
-                    "subtle": "#33000000"
-                  },
-                  "accent": {
-                    "default": "#2E89FC",
-                    "subtle": "#882E89FC"
-                  },
-                  "good": {
-                    "default": "#54a254",
-                    "subtle": "#DD54a254"
-                  },
-                  "warning": {
-                    "default": "#c3ab23",
-                    "subtle": "#DDc3ab23"
-                  },
-                  "attention": {
-                    "default": "#FF0000",
-                    "subtle": "#DDFF0000"
-                  }
-                },
-                "backgroundColor": "#08000000"
-              }
-            },
-            "actions": {
-              "maxActions": 5,
-              "spacing": "Default",
-              "buttonSpacing": 10,
-              "showCard": {
-                "actionMode": "Inline",
-                "inlineTopMargin": 16,
-                "style": "emphasis"
-              },
-              "preExpandSingleShowCardAction": false,
-              "actionsOrientation": "Horizontal",
-              "actionAlignment": "Left"
-            },
-            "adaptiveCard": {
-              "allowCustomStyle": false
-            },
-            "imageSet": {
-              "imageSize": "Medium",
-              "maxImageHeight": 100
-            },
-            "factSet": {
-              "title": {
-                "size": "Default",
-                "color": "Default",
-                "isSubtle": false,
-                "weight": "Bolder",
-                "warp": true
-              },
-              "value": {
-                "size": "Default",
-                "color": "Default",
-                "isSubtle": false,
-                "weight": "Default",
-                "warp": true
-              },
-              "spacing": 10
-            }
-          }
+          config: HostConfigs.windowsNotifications,
         },
         {
           title: 'Line Item',
@@ -701,147 +408,64 @@ class AzureDevOps extends React.Component {
               }
             ]
           }`,
-          config: {
-            "choiceSetInputValueSeparator": ",",
-            "supportsInteractivity": true,
-            "fontFamily": "Segoe UI",
-            "spacing": {
-              "small": 3,
-              "default": 8,
-              "medium": 20,
-              "large": 30,
-              "extraLarge": 40,
-              "padding": 10
-            },
-            "separator": {
-              "lineThickness": 1,
-              "lineColor": "#EEEEEE"
-            },
-            "fontSizes": {
-              "small": 12,
-              "default": 14,
-              "medium": 17,
-              "large": 21,
-              "extraLarge": 26
-            },
-            "fontWeights": {
-              "lighter": 200,
-              "default": 400,
-              "bolder": 600
-            },
-            "imageSizes": {
-              "small": 40,
-              "medium": 80,
-              "large": 160
-            },
-            "containerStyles": {
-              "default": {
-                "foregroundColors": {
-                  "default": {
-                    "default": "#333333",
-                    "subtle": "#EE333333"
+          config: HostConfigs.windowsNotifications,
+        },
+        {
+          title: 'Background Image',
+          layout: `{
+            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+            "type": "AdaptiveCard",
+            "version": "1.0",
+            "backgroundImage": "{{header.image}}",
+            "body": [
+              {
+                "type": "Container",
+                "items": [
+                  {
+                    "type": "TextBlock",
+                    "text": "{{header.title}}",
+                    "size": "large",
+                    "weight": "bolder",
+                    "color": "dark"
                   },
-                  "dark": {
-                    "default": "#000000",
-                    "subtle": "#66000000"
+                  {
+                    "type": "TextBlock",
+                    "text": "{{#? header.subtitle}}",
+                    "size": "medium",
+                    "color": "dark"
                   },
-                  "light": {
-                    "default": "#FFFFFF",
-                    "subtle": "#33000000"
+                  {
+                    "type": "Container",
+                    "items": "{{body}}"
                   },
-                  "accent": {
-                    "default": "#2E89FC",
-                    "subtle": "#882E89FC"
-                  },
-                  "good": {
-                    "default": "#54a254",
-                    "subtle": "#DD54a254"
-                  },
-                  "warning": {
-                    "default": "#c3ab23",
-                    "subtle": "#DDc3ab23"
-                  },
-                  "attention": {
-                    "default": "#FF0000",
-                    "subtle": "#DDFF0000"
+                  {
+                    "type": "Container",
+                    "items": [{
+                      "{{#if 'attribution' in this.extensions}}": [
+                        {
+                          "type": "Image",
+                          "url": "{{#? extensions.attribution.imageUrl}}",
+                          "horizontalAlignment": "left",
+                          "size": "medium"
+                        },
+                        {
+                          "type": "TextBlock",
+                          "text": "{{#? extensions.attribution.name}}"
+                        }
+                      ]
+                    }, {
+                      "{{#else}}": []
+                    }]
                   }
-                },
-                "backgroundColor": "#FFFFFF"
-              },
-              "emphasis": {
-                "foregroundColors": {
-                  "default": {
-                    "default": "#333333",
-                    "subtle": "#EE333333"
-                  },
-                  "dark": {
-                    "default": "#000000",
-                    "subtle": "#66000000"
-                  },
-                  "light": {
-                    "default": "#FFFFFF",
-                    "subtle": "#33000000"
-                  },
-                  "accent": {
-                    "default": "#2E89FC",
-                    "subtle": "#882E89FC"
-                  },
-                  "good": {
-                    "default": "#54a254",
-                    "subtle": "#DD54a254"
-                  },
-                  "warning": {
-                    "default": "#c3ab23",
-                    "subtle": "#DDc3ab23"
-                  },
-                  "attention": {
-                    "default": "#FF0000",
-                    "subtle": "#DDFF0000"
-                  }
-                },
-                "backgroundColor": "#08000000"
+                ]
               }
-            },
-            "actions": {
-              "maxActions": 5,
-              "spacing": "Default",
-              "buttonSpacing": 10,
-              "showCard": {
-                "actionMode": "Inline",
-                "inlineTopMargin": 16,
-                "style": "emphasis"
-              },
-              "preExpandSingleShowCardAction": false,
-              "actionsOrientation": "Horizontal",
-              "actionAlignment": "Left"
-            },
-            "adaptiveCard": {
-              "allowCustomStyle": false
-            },
-            "imageSet": {
-              "imageSize": "Medium",
-              "maxImageHeight": 100
-            },
-            "factSet": {
-              "title": {
-                "size": "Default",
-                "color": "Default",
-                "isSubtle": false,
-                "weight": "Bolder",
-                "warp": true
-              },
-              "value": {
-                "size": "Default",
-                "color": "Default",
-                "isSubtle": false,
-                "weight": "Default",
-                "warp": true
-              },
-              "spacing": 10
-            }
-          }
+            ]
+          }`,
+          config: HostConfigs.windowsNotifications,
         }
-      ])
+      ]),
+      selectedHostIndex: 0,
+      isHostEditorHidden: true,
     };
   }
 
@@ -909,6 +533,12 @@ class AzureDevOps extends React.Component {
     });
   }
 
+  toggleHostEditor = () => {
+    this.setState(({ isHostEditorHidden }) => ({
+      isHostEditorHidden: !isHostEditorHidden
+    }));
+  }
+
   /* Generate cards corresponding to all hosts */
   generateCards = (payload) => {
     return this.state.hosts.map(h => ST.select(payload)
@@ -920,7 +550,7 @@ class AzureDevOps extends React.Component {
     const {
       rawData, selectedRawDataIndex, isRawDataEditorHidden,
       templates, selectedTemplateIndex, isTemplateEditorHidden,
-      hosts,
+      hosts, selectedHostIndex, isHostEditorHidden,
     } = this.state;
 
     const currentRawData = tryParseJson(rawData.getIn([selectedRawDataIndex, 'content']));
@@ -1024,13 +654,33 @@ class AzureDevOps extends React.Component {
           /> */}
         </div>
         <div
-          className="w3-half w3-container"
+          className="w3-quarter w3-container"
+          style={{
+            overflowY: "scroll",
+            maxHeight: "811px"
+          }}
+          hidden={isHostEditorHidden}
+        >
+          <textarea
+            value={hosts.getIn([selectedHostIndex, 'layout'])}
+            readOnly={true}
+            style={{
+              overflowY: "scroll",
+              maxHeight: "800px"
+            }}
+          />
+        </div>
+        <div
+          className={`w3-${isHostEditorHidden ? 'half' : 'quarter'} w3-container`}
           style={{
             overflowY: "scroll",
             maxHeight: "811px"
           }}
         >
           <h2>Cards</h2>
+          <button onClick={this.toggleHostEditor}>
+            {isHostEditorHidden ? 'Open Host Layout' : 'Close Host Layout'}
+          </button>
           {finalCards ? finalCards.map((card, i) => (
             <div
               className="w3-half"
@@ -1040,20 +690,13 @@ class AzureDevOps extends React.Component {
               }}
               key={i}
             >
+              <h3>{hosts.getIn([i, 'title'])}</h3>
               <AdaptiveCardView
                 adaptiveCard={card}
                 hostConfigs={hosts.getIn([i, 'config']).toJS()}
                 maxWidth={300}
                 imagePrefetchingEnabled={true}
               />
-              {/* <textarea
-                value={JSON.stringify(card, null, 2)}
-                readOnly={true}
-                style={{
-                  overflowY: "scroll",
-                  maxHeight: "800px"
-                }}
-              /> */}
             </div>
           )) : 'Unable to generate cards'}
         </div>
