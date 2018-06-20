@@ -6,6 +6,14 @@ import { fromJS } from "immutable";
 import * as HostConfigs from "../hostConfigs";
 import FramePreview from "./FramePreview";
 
+/** TODO:
+ *  - Update the payload to have header, body, actions, and extensions
+ *  - Update the hosts' cards to look like the azure devops scenario
+ *  - Hide "Generated JSON"
+ *  - Host layout edtior to include host config as well
+ *    + host layout inside host config
+ *  - Add payload list
+ */
 class AdaptiveFrame extends React.Component {
   // Template for creating a new host
   hostTemplate = fromJS({

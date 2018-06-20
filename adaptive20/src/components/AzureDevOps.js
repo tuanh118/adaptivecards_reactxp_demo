@@ -461,7 +461,7 @@ class AzureDevOps extends React.Component {
               }
             ]
           }`,
-          config: HostConfigs.windowsNotifications,
+          config: HostConfigs.windowsTimeline,
         }
       ]),
       selectedHostIndex: 0,
